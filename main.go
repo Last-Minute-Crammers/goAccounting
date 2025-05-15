@@ -1,20 +1,33 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"time"
+
 	//"fmt"
 	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	_ "goAccounting/global"
+	"goAccounting/initialize"
+	"goAccounting/router"
 )
 
 var httpServer *http.Server
 
 func main() {
+	_ = initialize.Config
+
 	httpServer = &http.Server{
-		// Addr: ,
+		Addr:           fmt.Sprintf(":%d", initialize.Config.System.Addr),
+		Handler:        router.Engine,
+		WriteTimeout:   5 * time.Second,
+		ReadTimeout:    5 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
 	err := httpServer.ListenAndServe()
 	if err != nil {

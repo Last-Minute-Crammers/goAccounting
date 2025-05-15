@@ -3,6 +3,7 @@ package initialize
 import (
 	"context"
 	"goAccounting/global/constant"
+	"goAccounting/util"
 	"log"
 	"time"
 
@@ -48,5 +49,42 @@ func (r *_redis) initializeRedis() error {
 	if err != nil {
 		return err
 	}
+	Cache = &util.RedisCache{DB: r.Db, Addr: r.Addr, Password: r.Password}
+	return Cache.Init()
+}
 
+func (rh RedisHook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
+	if len(rh.name) == 0 {
+		log.Printf("exec  => <%s>\n", cmd)
+	} else {
+		log.Printf("%s exec  => <%s>\n", rh.name, cmd)
+	}
+	return ctx, nil
+}
+
+func (rh RedisHook) AfterProcess(_ context.Context, cmd redis.Cmder) error {
+	if len(rh.name) == 0 {
+		log.Printf("finish => <%s>\n", cmd)
+	} else {
+		log.Printf("%s finish => <%s>\n", rh.name, cmd)
+	}
+	return nil
+}
+
+func (rh RedisHook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
+	if len(rh.name) == 0 {
+		log.Printf("pipeline exec   => %v\n", cmds)
+	} else {
+		log.Printf("%s pipeline exec   => %v\n", rh.name, cmds)
+	}
+	return ctx, nil
+}
+
+func (rh RedisHook) AfterProcessPipeline(_ context.Context, cmds []redis.Cmder) error {
+	if len(rh.name) == 0 {
+		log.Printf("pipeline finish => %v\n", cmds)
+	} else {
+		log.Printf("%s pipeline finish => %v\n", rh.name, cmds)
+	}
+	return nil
 }

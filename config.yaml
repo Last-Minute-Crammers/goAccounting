@@ -1,0 +1,26 @@
+Mode: debug
+
+System:
+ Addr: 8080
+ RouterPrefix: ""
+ JwtKey: ""
+ ClientSignKey: ""
+
+Redis:
+  Addr: "127.0.0.1:6379"
+  Password: ""
+  Db: 0
+
+Mysql:
+  Path: "127.0.0.1"
+  Port: "3306"
+  Config: "parseTime=True&loc=Local"
+  DbName: "Accounting"
+  Username: "hypnos"
+  Password: "hypnos"
+
+ThirdParty:
+  Ai:
+    Host: ""
+    Port: ""
+    MinSimilarity: 0.85

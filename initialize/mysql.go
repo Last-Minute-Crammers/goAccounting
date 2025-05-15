@@ -21,7 +21,7 @@ type _mysql struct {
 }
 
 func (m *_mysql) getDSN() string {
-	return m.Username + ":" + m.Password + "@tcp(" + m.Path + ":" + m.Port + ")/" + m.DbName + "/" + m.Config
+	return m.Username + ":" + m.Password + "@tcp(" + m.Path + ":" + m.Port + ")/" + m.DbName + "?" + m.Config
 }
 func (m *_mysql) gormConfigInit() *gorm.Config {
 	config := &gorm.Config{
@@ -42,7 +42,7 @@ func (m *_mysql) gormConfigInit() *gorm.Config {
 	return config
 }
 
-func (m *_mysql) initializMysql() error {
+func (m *_mysql) initializeMysql() error {
 	var err error
 	mysqlConfig := mysql.Config{
 		DSN:                       m.getDSN(),
