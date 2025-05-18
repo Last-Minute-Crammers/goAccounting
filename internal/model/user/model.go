@@ -42,6 +42,7 @@ func (u *User) SelectById(id uint, selects ...any) error {
 	return dbQuery.First(u).Error
 }
 
+// TOUR func is low priority to develop
 func (u *User) IsTourist(db *gorm.DB) (bool, error) {
 	return true, nil
 }

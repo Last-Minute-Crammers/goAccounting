@@ -1,12 +1,10 @@
-package userModel
+package commentModel
 
 import "goAccounting/global/db"
 
 func init() {
 	tables := []any{
-		User{},
-		Friend{}, FriendInvitation{},
-		TransactionShareConfig{},
+		Comment{},
 	}
 	err := db.InitDb.AutoMigrate(tables...)
 	if err != nil {

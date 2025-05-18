@@ -175,9 +175,30 @@ func (u *UserDao) SelectFriend(userId uint, friendId uint) (Friend, error) {
 	return friend, err
 }
 
+// if they are friends they both should have records, so count == 2
 func (u *UserDao) IsRealFriend(userId uint, friendId uint) (bool, error) {
 	var count int64
 	whereSql := "user_id = ? AND friend_id = ? OR friend_id = ? AND user_id = ?"
 	err := u.db.Model(&Friend{}).Where(whereSql, userId, friendId, userId, friendId).Count(&count).Error
 	return count == 2, err
+}
+
+func (u *UserDao) AddFriend(userId uint, friendId uint, add AddMode) (friend Friend, err error) {
+	friend = Friend{UserId: userId, FriendId: friendId, AddMode: add}
+	err = u.db.Create(&friend).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			friend, err = u.SelectFriend(userId, friendId)
+
+		} else {
+			return friend, err
+
+		}
+	}
+	return friend, err
+}
+
+func (u *UserDao) SelectFriendList(userId uint) (list []Friend, err error) {
+	err = u.db.Model(&Friend{}).Where("user_id = ?", userId).Find(&list).Error
+	return list, err
 }

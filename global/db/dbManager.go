@@ -12,7 +12,9 @@ import (
 )
 
 var (
-	Db      = initialize.Database
+	Db = initialize.Database
+	// we don't want some operation influence the log, so it hvae a silent
+	// charater compared with GlobalDb. so we use it for init.
 	InitDb  = Db.Session(&gorm.Session{Logger: Db.Logger.LogMode(logger.Silent)})
 	Context *ctxutil.DbContext
 )
