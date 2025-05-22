@@ -55,3 +55,11 @@ func AddCommitCallback(parent context.Context, callbacks ...ctxutil.TxCommitCall
 	txCommitCtx.AddCallBack(callbacks...)
 	return nil
 }
+
+func Get(ctx context.Context) *gorm.DB {
+	value := ctx.Value(Db)
+	if value == nil {
+		return Db
+	}
+	return ctx.Value(Db).(*gorm.DB)
+}

@@ -2,7 +2,11 @@ package userModel
 
 // not necessary, so it's not developed now
 import (
+	"goAccounting/global"
+	"goAccounting/global/constant"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Log struct {
@@ -14,4 +18,29 @@ type Log struct {
 
 func (l *Log) TableName() string {
 	return "user_log"
+}
+
+type LogDao struct {
+	db *gorm.DB
+}
+
+func NewLogDao(db *gorm.DB) *LogDao {
+	if db == nil {
+		db = global.GlobalDb
+	}
+	return &LogDao{db}
+}
+
+type LogAddData struct {
+	Action constant.UserAction
+	Remark string
+}
+
+func (l *LogDao) Add(user User, data *LogAddData) (*Log, error) {
+	log := &Log{
+		UserId: user.ID,
+		Action: string(data.Action),
+	}
+	err := l.db.Create(&log).Error
+	return log, err
 }
