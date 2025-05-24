@@ -6,9 +6,9 @@ import (
 	"goAccounting/global/db"
 	userModel "goAccounting/internal/model/user"
 	commonService "goAccounting/internal/service/common"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 )
 
@@ -17,14 +17,19 @@ type User struct{}
 func (userSvc *User) Login(email string, password string, ctx context.Context) (
 	user userModel.User, token string, customClaims jwt.RegisteredClaims, err error,
 ) {
-	password, err = commonService.Common.HashPassword(password)
+	// 仅通过 email 查询用户记录
+	err = global.GlobalDb.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		return
 	}
-	err = global.GlobalDb.Where("email = ? And password = ?", email, password).First(&user).Error
+
+	// 验证密码
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return
 	}
+
+	// 生成 JWT 和更新登录数据
 	customClaims = commonService.Common.MakeCustomClaims(user.ID)
 	token, err = commonService.Common.GenerateJWT(customClaims)
 	if err != nil {
@@ -38,16 +43,18 @@ func (userSvc *User) Login(email string, password string, ctx context.Context) (
 }
 
 func (userSvc *User) updateDataAfterLogin(user userModel.User, ctx context.Context) error {
-	err := db.GetDb(ctx).Model(user).Where("user_id = ?", user.ID).Update(
-		"login_time", time.Now(),
-	).Error
+	// err := db.GetDb(ctx).Model(&user).Where("id = ?", user.ID).Update(
+	// 	"login_time", time.Now(),
+	// ).Error
+	// if err != nil {
+	// 	return err
+	// }
+	// tag:consider-user_log
+	_, err := userSvc.RecordAction(user, constant.Login, ctx)
 	if err != nil {
 		return err
 	}
-	_, err = userSvc.RecordAction(user, constant.Login, ctx)
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 

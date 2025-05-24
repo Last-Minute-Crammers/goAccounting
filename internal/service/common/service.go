@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -38,10 +39,10 @@ const ExpireAt time.Duration = 90 * 24 * time.Hour
 func (cm *common) MakeCustomClaims(userId uint) jwt.RegisteredClaims {
 	expirationTime := time.Now().Add(ExpireAt)
 	return jwt.RegisteredClaims{
-		ID:        strconv.Itoa(int(userId)),
+		ID:        uuid.NewString(),                       // 使用 UUID 作为令牌的唯一标识符
+		Subject:   strconv.FormatUint(uint64(userId), 10), // 将用户 ID 存储在 Subject 字段
 		ExpiresAt: jwt.NewNumericDate(expirationTime),
 		Issuer:    "server",
-		Subject:   "user",
 	}
 }
 

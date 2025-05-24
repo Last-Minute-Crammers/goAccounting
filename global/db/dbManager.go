@@ -56,6 +56,7 @@ func AddCommitCallback(parent context.Context, callbacks ...ctxutil.TxCommitCall
 	return nil
 }
 
+// Get returns the database connection from the context.
 func Get(ctx context.Context) *gorm.DB {
 	value := ctx.Value(Db)
 	if value == nil {

@@ -44,5 +44,5 @@ func shutDown() {
 	if err := httpServer.Shutdown(context.TODO()); err != nil {
 		log.Fatal("Server forced to shutdown: ", err)
 	}
-	log.Println("Server exiti程度g")
+	log.Println("Server exiting")
 }

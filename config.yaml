@@ -13,7 +13,7 @@ Redis:
 
 Mysql:
   Path: "127.0.0.1"
-  Port: "3306"
+  Port: "3307"
   Config: "parseTime=True&loc=Local"
   DbName: "Accounting"
   Username: "hypnos"
