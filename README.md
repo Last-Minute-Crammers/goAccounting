@@ -6,14 +6,17 @@
 ## 更新list
 ---
 ### 已do list
+- 好友申请，添加和拒绝
 - 登录与注册（无邮箱验证）
 - 测试登录与注册，修改了JWT令牌的ID和Subject
-
+- 基础记账功能+单日静态统计
+- ai服务大体框架
 
 ---
 ### todo list
-- 基础记账功能+静态统计
-
+- ai服务
+- category服务（要ICON吗还）
+- api
 
 ---
 ### consider todo list（暂时优先级低）
