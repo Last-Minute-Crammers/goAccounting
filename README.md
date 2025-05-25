@@ -12,11 +12,14 @@
 
 ---
 ### todo list
+- 基础记账功能+静态统计
+
 
 ---
-### consider todo list
+### consider todo list（暂时优先级低）
 - 邮件验证
 - user_log
+- 创建新记账本，多人账本
 
 ---
 ### 暂时不考虑实现的功能

@@ -21,6 +21,9 @@ Mysql:
 
 ThirdParty:
   Ai:
-    Host: ""
-    Port: ""
-    MinSimilarity: 0.85
+    voice:
+      api_key: "your_voice_api_key"
+    ocr:
+      api_key: "your_ocr_api_key"
+    chat:
+      api_key: "your_chat_api_key"
