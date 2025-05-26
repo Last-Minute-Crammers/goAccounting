@@ -202,3 +202,11 @@ func (u *UserDao) SelectFriendList(userId uint) (list []Friend, err error) {
 	err = u.db.Model(&Friend{}).Where("user_id = ?", userId).Find(&list).Error
 	return list, err
 }
+
+func (u *UserDao) UpdateUsername(userId uint, username string) error {
+	if username == "" {
+		return errors.New("username cannot be empty")
+	}
+	err := u.db.Model(&User{}).Where("id = ?", userId).Update("username", username).Error
+	return err
+}

@@ -15,11 +15,14 @@
 ---
 ### todo list
 - ai服务
-- category服务（要ICON吗还）
+- category服务
 - api
 
 ---
 ### consider todo list（暂时优先级低）
+- 单日统计分为收入和支出
+- 单日统计接入LLM
+- 设定头像
 - 邮件验证
 - user_log
 - 创建新记账本，多人账本

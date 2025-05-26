@@ -1,4 +1,4 @@
-package chatModel
+package aiModel
 
 import (
 	"time"

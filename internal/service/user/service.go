@@ -89,3 +89,11 @@ func (userSvc *User) RecordAction(user userModel.User, action constant.UserActio
 	}
 	return log, err
 }
+
+// set avatar for user (not now)
+
+// set username for user
+func (userSvc *User) SetUsername(userId uint, username string, ctx context.Context) error {
+	dao := userModel.NewDao(db.Get(ctx))
+	return dao.UpdateUsername(userId, username)
+}

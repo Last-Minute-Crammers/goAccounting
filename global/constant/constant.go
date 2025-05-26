@@ -1,6 +1,7 @@
 package constant
 
 import (
+	"errors" // Added for error handling
 	"fmt"
 	"os"
 	"os/exec"
@@ -17,6 +18,7 @@ var (
 	LogPath                = filepath.Join(RootDir, "log")
 	DataPath               = filepath.Join(RootDir, "data")
 	ExampleAccountJsonPath = filepath.Clean(DataPath + "/template/account/example.json")
+	ErrUsernameSameName    = errors.New("用户名已存在")
 )
 
 type Subject string
