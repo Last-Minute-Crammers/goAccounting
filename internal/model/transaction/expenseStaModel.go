@@ -45,7 +45,7 @@ func (e *ExpenseUserStatistic) Accumulate(
 type ExpenseCategoryStatistic struct {
 	Statistic
 	CategoryId uint `gorm:"primaryKey"`
-	UserId     uint
+	UserId     uint `gorm:"primaryKey"`
 }
 
 func (e *ExpenseCategoryStatistic) TableName() string {

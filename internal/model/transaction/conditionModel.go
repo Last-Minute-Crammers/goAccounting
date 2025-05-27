@@ -159,7 +159,7 @@ type StatisticConditionBuilder struct {
 	condition StatisticCondition
 }
 
-func (b *StatisticConditionBuilder) NewStatisticConditionBuilder(userId uint) *StatisticConditionBuilder {
+func NewStatisticConditionBuilder(userId uint) *StatisticConditionBuilder {
 	return &StatisticConditionBuilder{
 		condition: StatisticCondition{
 			ForeignKeyCondition: ForeignKeyCondition{UserId: userId},
