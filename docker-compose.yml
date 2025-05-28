@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # 后端API服务
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goaccounting-api
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./logs:/app/logs
+      - ./data:/app/data
+    networks:
+      - goaccounting-network
+
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: goaccounting-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: hypnos
+      MYSQL_DATABASE: Accounting
+      MYSQL_USER: hypnos
+      MYSQL_PASSWORD: hypnos
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-sql:/docker-entrypoint-initdb.d
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - goaccounting-network
+
+  # Redis缓存
+  redis:
+    image: redis:alpine
+    container_name: goaccounting-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - goaccounting-network
+  
+  # Swagger UI (可选，如果你的API有Swagger文档)
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: goaccounting-swagger
+    restart: always
+    ports:
+      - "8081:8080"
+    environment:
+      API_URL: http://localhost:8080/public/swagger/doc.json
+      BASE_URL: /swagger
+    depends_on:
+      - api
+    networks:
+      - goaccounting-network
+
+networks:
+  goaccounting-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:

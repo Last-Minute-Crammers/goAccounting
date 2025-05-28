@@ -1,4 +1,4 @@
-package transcationService
+package transactionService
 
 import (
 	"goAccounting/global"

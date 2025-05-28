@@ -27,6 +27,10 @@ func (f *Friend) GetFriend(args ...any) (User, error) {
 	return NewDao().SelectById(f.FriendId, args)
 }
 
+func (f *Friend) GetFriendInfo() (info UserInfo, err error) {
+	return NewDao().SelectUserInfoById(f.FriendId)
+}
+
 type AddMode string
 
 const FriendAddModeOfFriendInvitation AddMode = "frinedInvitation"

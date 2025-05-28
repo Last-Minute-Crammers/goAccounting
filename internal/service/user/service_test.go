@@ -19,7 +19,7 @@ func TestUser_RegisterAndLogin(t *testing.T) {
 	global.GlobalDb.Exec("DELETE FROM user")
 
 	// 测试注册
-	newUser := userModel.User{
+	newUser := userModel.AddData{
 		Username: "testuser",
 		Email:    "newuser@example.com",
 		Password: "password123",

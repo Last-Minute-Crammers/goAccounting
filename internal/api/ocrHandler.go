@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"goAccounting/internal/service/thirdparty/aiService"
+	aiService "goAccounting/internal/service/thirdparty/ai"
 	"net/http"
 )
 

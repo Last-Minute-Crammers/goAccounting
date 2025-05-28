@@ -1,7 +1,7 @@
-package commonService
+package transactionService
 
 type Group struct {
-	common
+	Transaction
 }
 
 var GroupApp = new(Group)

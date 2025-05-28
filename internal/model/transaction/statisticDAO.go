@@ -4,6 +4,7 @@ import (
 	"errors"
 	"goAccounting/global"
 	"goAccounting/global/constant"
+	userModel "goAccounting/internal/model/user"
 	"log"
 	"time"
 
@@ -84,5 +85,39 @@ func (s *StatisticDao) GetIeStatisticByCondition(ie *constant.IncomeExpense, con
 			return
 		}
 	}
+	return result, err
+}
+
+// set time condition
+type CategoryAmountRankCondition struct {
+	User      userModel.User // in fact, we don't need it
+	StartTime time.Time
+	EndTime   time.Time
+}
+
+func (c *CategoryAmountRankCondition) Local() {
+	location := time.Local
+	c.StartTime = c.StartTime.In(location)
+	c.EndTime = c.EndTime.In(location)
+}
+
+// for CategoryStatistic result
+type CategoryAmountRank struct {
+	CategoryId uint
+	global.AmountCount
+}
+
+func (s *StatisticDao) GetCategoryAmountRank(
+	ie constant.IncomeExpense, condition CategoryAmountRankCondition, limit *int,
+) (result []CategoryAmountRank, err error) {
+	condition.Local()
+	query := s.db.Where("user_id = ?", condition.User.ID)
+	query = query.Where("data BETWEEN ? AND ?", condition.StartTime, condition.EndTime)
+	// group means group :)
+	query = query.Select("SUM(amount) as Amount,SUM(count) as Count,category_id").Group("category_id")
+	if limit != nil {
+		query = query.Limit(*limit)
+	}
+	err = s.queryIE(ie, query).Order("Amount desc").Find(&result).Error
 	return result, err
 }

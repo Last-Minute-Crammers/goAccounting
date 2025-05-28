@@ -3,9 +3,11 @@ package userService
 import (
 	"goAccounting/global"
 	"goAccounting/global/constant"
+	"goAccounting/global/ctxutil"
 	"goAccounting/global/db"
 	userModel "goAccounting/internal/model/user"
 	commonService "goAccounting/internal/service/common"
+	"log"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -58,9 +60,10 @@ func (userSvc *User) updateDataAfterLogin(user userModel.User, ctx context.Conte
 	return nil
 }
 
-func (userSvc *User) Register(user userModel.User, ctx context.Context) (userModel.User, error) {
+func (userSvc *User) Register(data userModel.AddData, ctx context.Context) (userModel.User, error) {
 	dao := userModel.NewDao(db.Get(ctx))
-	err := dao.CheckEmail(user.Email)
+	user := userModel.User{}
+	err := dao.CheckEmail(data.Email)
 	if err != nil {
 		return user, err
 	}
@@ -96,4 +99,26 @@ func (userSvc *User) RecordAction(user userModel.User, action constant.UserActio
 func (userSvc *User) SetUsername(userId uint, username string, ctx context.Context) error {
 	dao := userModel.NewDao(db.Get(ctx))
 	return dao.UpdateUsername(userId, username)
+}
+
+func (userSvc *User) UpdatePassword(user userModel.User, newPassword string, ctx context.Context) error {
+	password, _ := commonService.Common.HashPassword(newPassword)
+	if password == user.Password {
+		logRemark := global.ErrSameAsTheOldPassword.Error()
+		log.Printf("%s\n", logRemark)
+	}
+	return db.ExecInTransaction(
+		ctx, func(ctx *ctxutil.TxContext) error {
+			tx := ctx.GetDb()
+			err := tx.Model(user).Update("password", password).Error
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	)
+}
+
+func (userSvc *User) UpdateInfo(user userModel.User, username string, ctx context.Context) error {
+	return db.Get(ctx).Model(&user).Update("username", username).Error
 }
