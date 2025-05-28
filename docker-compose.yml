@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  # 后端API服务
+  # Go后端服务
   api:
     build:
       context: .
@@ -11,10 +9,19 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      - TZ=Asia/Shanghai
+      TZ: Asia/Shanghai
+      # 以下环境变量可以在 config.yaml 里引用，也可在此直接指定
+      # DB_HOST: mysql
+      # DB_PORT: 3306
+      # DB_USER: hypnos
+      # DB_PASS: hypnos
+      # REDIS_HOST: redis
+      # REDIS_PORT: 6379
     volumes:
       - ./config.yaml:/app/config.yaml
       - ./logs:/app/logs
@@ -22,7 +29,6 @@ services:
     networks:
       - goaccounting-network
 
-  # MySQL数据库
   mysql:
     image: mysql:8.0
     container_name: goaccounting-mysql
@@ -34,14 +40,19 @@ services:
       MYSQL_DATABASE: Accounting
       MYSQL_USER: hypnos
       MYSQL_PASSWORD: hypnos
+      TZ: Asia/Shanghai
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init-sql:/docker-entrypoint-initdb.d
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-hhypnos", "-phypnos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - goaccounting-network
 
-  # Redis缓存
   redis:
     image: redis:alpine
     container_name: goaccounting-redis
@@ -51,23 +62,28 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - goaccounting-network
-  
-  # Swagger UI (可选，如果你的API有Swagger文档)
-  swagger-ui:
-    image: swaggerapi/swagger-ui
-    container_name: goaccounting-swagger
-    restart: always
-    ports:
-      - "8081:8080"
-    environment:
-      API_URL: http://localhost:8080/public/swagger/doc.json
-      BASE_URL: /swagger
-    depends_on:
-      - api
-    networks:
-      - goaccounting-network
+
+  # swagger-ui (如需API文档可取消注释)
+  # swagger-ui:
+  #   image: swaggerapi/swagger-ui
+  #   container_name: goaccounting-swagger
+  #   restart: always
+  #   ports:
+  #     - "8081:8080"
+  #   environment:
+  #     API_URL: http://localhost:8080/public/swagger/doc.json
+  #     BASE_URL: /swagger
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - goaccounting-network
 
 networks:
   goaccounting-network:
