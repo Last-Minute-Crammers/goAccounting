@@ -87,3 +87,11 @@ func Forbidden(ctx *gin.Context) {
 func TokenExpired(ctx *gin.Context) {
 	ResponseAndAbort(401, map[string]interface{}{}, "token expired", ctx)
 }
+
+func WebSocketUpgradeFailed(ctx *gin.Context) {
+	ResponseAndAbort(400, map[string]interface{}{}, "WebSocket升级失败", ctx)
+}
+
+func BadRequest(ctx *gin.Context, message string) {
+	ResponseAndAbort(400, map[string]interface{}{}, message, ctx)
+}

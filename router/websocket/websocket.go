@@ -24,7 +24,7 @@ func UpgradeToWebsocket(handler func(conn *websocket.Conn, ctx *gin.Context) err
 		}
 		conn.SetPingHandler(
 			func(message string) error {
-				err := conn.WriteControl(websocket.PongMessage, []byte(message), time.Now().Add(1))
+				err := conn.WriteControl(websocket.PongMessage, []byte(message), time.Now().Add(time.Second))
 				// if connnction is closed else if network have temperr else return err
 				if err == websocket.ErrCloseSent {
 					return nil
@@ -34,13 +34,18 @@ func UpgradeToWebsocket(handler func(conn *websocket.Conn, ctx *gin.Context) err
 				return err
 			},
 		)
-		conn.SetPongHandler(nil)
-		conn.SetCloseHandler(nil)
+		conn.SetPongHandler(func(appData string) error {
+			log.Println("Received pong:", appData)
+			return nil
+		})
+		conn.SetCloseHandler(func(code int, text string) error {
+			log.Printf("WebSocket connection closed: code=%d, text=%s", code, text)
+			return nil
+		})
 		defer conn.Close()
 		err = handler(conn, ctx)
 		if err != nil {
-			log.Println("websocket err")
+			log.Printf("WebSocket handler error: %v", err)
 		}
-
 	}
 }

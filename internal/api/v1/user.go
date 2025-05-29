@@ -177,6 +177,93 @@ func (u *UserApi) Home(ctx *gin.Context) {
 	response.OkWithData(responseData, ctx)
 }
 
+// UpdateInfo 更新用户信息
+//
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		request.UserUpdateInfo	true	"update data"
+//	@Success	200		{object}	response.Data
+//	@Router		/user/info [put]
+func (u *UserApi) UpdateInfo(ctx *gin.Context) {
+	var requestData request.UserUpdateInfo
+	if err := ctx.ShouldBindJSON(&requestData); err != nil {
+		response.FailToParameter(ctx, err)
+		return
+	}
+
+	user, err := contextFunc.GetUser(ctx)
+	if responseError(err, ctx) {
+		return
+	}
+
+	// TODO: 实现更新用户信息逻辑
+	// err = userService.UpdateInfo(user.ID, requestData)
+	// if responseError(err, ctx) {
+	//     return
+	// }
+
+	response.OkWithMessage("用户信息更新成功", ctx)
+}
+
+// UpdatePassword 更新密码
+//
+//	@Tags		User
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		request.UserUpdatePassword	true	"password data"
+//	@Success	200		{object}	response.Data
+//	@Router		/user/password [put]
+func (u *UserApi) UpdatePassword(ctx *gin.Context) {
+	var requestData request.UserUpdatePassword
+	if err := ctx.ShouldBindJSON(&requestData); err != nil {
+		response.FailToParameter(ctx, err)
+		return
+	}
+
+	user, err := contextFunc.GetUser(ctx)
+	if responseError(err, ctx) {
+		return
+	}
+
+	// TODO: 实现更新密码逻辑
+	// err = userService.UpdatePassword(user.ID, requestData)
+	// if responseError(err, ctx) {
+	//     return
+	// }
+
+	response.OkWithMessage("密码更新成功", ctx)
+}
+
+// GetStats 获取用户统计数据
+//
+//	@Tags		User
+//	@Produce	json
+//	@Success	200	{object}	response.Data{Data=response.UserStats}
+//	@Router		/user/stats [get]
+func (u *UserApi) GetStats(ctx *gin.Context) {
+	user, err := contextFunc.GetUser(ctx)
+	if responseError(err, ctx) {
+		return
+	}
+
+	// TODO: 实现获取用户统计数据逻辑
+	// stats, err := userService.GetUserStats(user.ID)
+	// if responseError(err, ctx) {
+	//     return
+	// }
+
+	// 模拟数据
+	mockStats := gin.H{
+		"total_income":        25000.00,
+		"total_expense":       15600.00,
+		"savings_rate":        37.6,
+		"monthly_avg_expense": 2600.00,
+	}
+
+	response.OkWithData(mockStats, ctx)
+}
+
 // GetFriendList
 //
 //	@Tags		User/Friend
@@ -225,7 +312,7 @@ func (u *UserApi) responseUserFriendInvitation(data userModel.FriendInvitation) 
 		CreateTime: data.CreatedAt,
 	}
 	responseData.Inviter.SetData(inviterInfo)
-	responseData.Inviter.SetData(inviteeInfo)
+	responseData.Invitee.SetData(inviteeInfo) // Fix: was setting inviter twice
 	return
 }
 

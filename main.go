@@ -12,6 +12,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	// 添加 CORS 导入 - 虽然在这里不直接使用，但确保依赖可用
+	_ "github.com/gin-contrib/cors"
+
 	_ "goAccounting/global"
 	"goAccounting/initialize"
 	"goAccounting/router"

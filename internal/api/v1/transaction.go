@@ -151,3 +151,90 @@ func (t *TransactionApi) GetMonthStatistic(ctx *gin.Context) {
 	}
 	response.OkWithData(response.List[response.TransactionStatistic]{List: responseList}, ctx)
 }
+
+// UpdateOne 更新交易记录
+//
+//	@Tags		Transaction
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		int								true	"Transaction ID"
+//	@Param		body	body		request.TransactionUpdateOne	true	"transaction data"
+//	@Success	200		{object}	response.Data{Data=response.TransactionDetail}
+//	@Router		/user/transaction/{id} [put]
+func (t *TransactionApi) UpdateOne(ctx *gin.Context) {
+	trans, ok := contextFunc.GetTransByParam(ctx)
+	if !ok {
+		return
+	}
+	
+	var requestData request.TransactionUpdateOne
+	if err := ctx.ShouldBindJSON(&requestData); err != nil {
+		response.FailToParameter(ctx, err)
+		return
+	}
+	
+	// TODO: 实现更新交易记录逻辑
+	// updatedTrans, err := transactionService.Update(trans.ID, requestData, ctx)
+	// if responseError(err, ctx) {
+	//     return
+	// }
+	
+	var responseData response.TransactionDetail
+	err := responseData.SetData(trans)
+	if responseError(err, ctx) {
+		return
+	}
+	
+	response.OkWithData(responseData, ctx)
+}
+
+// DeleteOne 删除交易记录
+//
+//	@Tags		Transaction
+//	@Produce	json
+//	@Param		id		path		int	true	"Transaction ID"
+//	@Success	200		{object}	response.Data
+//	@Router		/user/transaction/{id} [delete]
+func (t *TransactionApi) DeleteOne(ctx *gin.Context) {
+	trans, ok := contextFunc.GetTransByParam(ctx)
+	if !ok {
+		return
+	}
+	
+	// TODO: 实现删除交易记录逻辑
+	// err := transactionService.Delete(trans.ID, ctx)
+	// if responseError(err, ctx) {
+	//     return
+	// }
+	
+	response.OkWithMessage("交易记录删除成功", ctx)
+}
+
+// GetCategoryStats 获取分类统计
+//
+//	@Tags		Transaction/Statistics
+//	@Accept		json
+//	@Produce	json
+//	@Param		data	body		request.TransactionCategoryAmountRank	true	"condition"
+//	@Success	200		{object}	response.Data{Data=response.List[response.TransactionCategoryAmountRank]{}}
+//	@Router		/user/transaction/statistic/category [get]
+func (t *TransactionApi) GetCategoryStats(ctx *gin.Context) {
+	var requestData request.TransactionCategoryAmountRank
+	if err := ctx.ShouldBindJSON(&requestData); err != nil {
+		response.FailToParameter(ctx, err)
+		return
+	}
+	
+	// TODO: 实现分类统计逻辑
+	// stats, err := transactionService.GetCategoryStats(requestData, ctx)
+	// if responseError(err, ctx) {
+	//     return
+	// }
+	
+	// 模拟数据
+	mockStats := []response.TransactionCategoryAmountRank{
+		// TODO: Replace with actual category response structure
+	}
+	
+	response.OkWithData(response.List[response.TransactionCategoryAmountRank]{List: mockStats}, ctx)
+}

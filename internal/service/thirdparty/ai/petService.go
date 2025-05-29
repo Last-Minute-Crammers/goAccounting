@@ -7,9 +7,18 @@ import (
 	"context"
 	"math/rand"
 	"time"
+	aiModel "goAccounting/internal/model/ai"
 )
 
-type PetService struct{}
+type PetService struct {
+	dao *aiModel.PetDAO
+}
+
+func NewPetService() *PetService {
+	return &PetService{
+		dao: aiModel.NewPetDAO(),
+	}
+}
 
 type PetMood struct {
 	Mood          string    `json:"mood"`
@@ -61,14 +70,17 @@ func (ps *PetService) UpdatePetMood(goal FinancialGoal, ctx context.Context) (*P
 		}
 	}
 
-	// 随机选择一句鼓励语
+	// 使用时间作为随机种子
+	rand.Seed(time.Now().UnixNano())
 	encouragement := encouragements[rand.Intn(len(encouragements))]
 
-	return &PetMood{
+	petMood := &PetMood{
 		Mood:          mood,
 		Encouragement: encouragement,
 		UpdatedAt:     time.Now(),
-	}, nil
+	}
+
+	return petMood, nil
 }
 
 func (ps *PetService) GetDailyEncouragement(ctx context.Context) (string, error) {
@@ -82,4 +94,12 @@ func (ps *PetService) GetDailyEncouragement(ctx context.Context) (string, error)
 
 	encouragement := encouragements[rand.Intn(len(encouragements))]
 	return encouragement, nil
+}
+
+func (ps *PetService) GetUserPet(userId uint) (*aiModel.PetModel, error) {
+	return ps.dao.GetByUserId(userId)
+}
+
+func (ps *PetService) UpdateUserPetMood(userId uint, mood, message string) error {
+	return ps.dao.UpdateMood(userId, mood, message)
 }

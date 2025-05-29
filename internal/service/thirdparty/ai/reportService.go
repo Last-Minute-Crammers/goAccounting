@@ -3,11 +3,20 @@ package aiService
 
 import (
 	"context"
-	//"fmt"
+	"fmt"
 	"time"
+	aiModel "goAccounting/internal/model/ai"
 )
 
-type ReportService struct{}
+type ReportService struct {
+	dao *aiModel.ReportDAO
+}
+
+func NewReportService() *ReportService {
+	return &ReportService{
+		dao: aiModel.NewReportDAO(),
+	}
+}
 
 type FinancialData struct {
 	Income   float64 `json:"income"`
@@ -26,9 +35,12 @@ type FinancialReport struct {
 }
 
 func (rs *ReportService) GenerateWeeklyReport(data FinancialData, ctx context.Context) (*FinancialReport, error) {
-	// 调用大模型API生成周报
-	//prompt := fmt.Sprintf("基于以下财务数据生成周报：收入%.2f，支出%.2f，储蓄%.2f",
-	//	data.Income, data.Expense, data.Savings)
+	// TODO: 调用大模型API生成周报
+	prompt := fmt.Sprintf("基于以下财务数据生成周报：收入%.2f，支出%.2f，储蓄%.2f",
+		data.Income, data.Expense, data.Savings)
+
+	// 这里应该调用实际的AI API
+	_ = prompt // 临时避免未使用变量警告
 
 	report := &FinancialReport{
 		Period:      "weekly",
@@ -71,4 +83,20 @@ func (rs *ReportService) GenerateYearlyReport(data FinancialData, ctx context.Co
 	}
 
 	return report, nil
+}
+
+func (rs *ReportService) SaveReport(userId uint, report *FinancialReport) error {
+	dbReport := &aiModel.FinancialReport{
+		UserId:      userId,
+		Period:      report.Period,
+		Summary:     report.Summary,
+		Advice:      report.Advice,
+		Score:       report.Score,
+		GeneratedAt: report.GeneratedAt,
+	}
+	return rs.dao.Create(dbReport)
+}
+
+func (rs *ReportService) GetUserReports(userId uint, period string, limit int) ([]aiModel.FinancialReport, error) {
+	return rs.dao.GetByUserAndPeriod(userId, period, limit)
 }

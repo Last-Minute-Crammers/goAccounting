@@ -1,6 +1,9 @@
 package categoryModel
 
-import "goAccounting/global/db"
+import (
+	"goAccounting/global/db"
+	"log"
+)
 
 func init() {
 	tables := []any{
@@ -11,29 +14,24 @@ func init() {
 		panic(err)
 	}
 
+	// 初始化默认分类数据
 	initDefaultCategories()
 }
 
-// in fact, I don't wonna add Icon, I'm lazy to find icons
 func initDefaultCategories() {
-	var count int64
-	db.InitDb.Model(&Category{}).Count(&count)
-	if count > 0 {
-		return
+	defaultCategories := GetDefaultCategories()
+	
+	for _, category := range defaultCategories {
+		var existingCategory Category
+		result := db.InitDb.Where("id = ?", category.ID).First(&existingCategory)
+		
+		if result.Error != nil {
+			// 分类不存在，创建新分类
+			if err := db.InitDb.Create(&category).Error; err != nil {
+				log.Printf("Failed to create default category %s: %v", category.Name, err)
+			} else {
+				log.Printf("Created default category: %s", category.Name)
+			}
+		}
 	}
-	expenses := []Category{
-		{Name: "餐饮", Icon: "food", IncomeExpense: "支出"},
-		{Name: "交通", Icon: "transportation", IncomeExpense: "支出"},
-		{Name: "购物", Icon: "shop", IncomeExpense: "支出"},
-		{Name: "娱乐", Icon: "game", IncomeExpense: "支出"},
-	}
-
-	incomes := []Category{
-		{Name: "工资", Icon: "salary", IncomeExpense: "收入"},
-		{Name: "奖金", Icon: "bonus", IncomeExpense: "收入"},
-		{Name: "投资", Icon: "invest", IncomeExpense: "收入"},
-	}
-
-	db.InitDb.Create(&expenses)
-	db.InitDb.Create(&incomes)
 }

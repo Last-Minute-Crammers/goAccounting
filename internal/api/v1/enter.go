@@ -22,14 +22,6 @@ var (
 	transactionService = service.GroupApp.TransactionServiceGroup
 )
 
-func handelError(err error, ctx *gin.Context) bool {
-	if err != nil {
-		response.FailToError(ctx, err)
-		return true
-	}
-	return false
-}
-
 func responseError(err error, ctx *gin.Context) bool {
 	if err != nil {
 		response.FailToError(ctx, err)
