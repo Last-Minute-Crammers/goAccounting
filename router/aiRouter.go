@@ -1,12 +1,12 @@
 package router
 
 import (
-    "net/http"
-    "goAccounting/internal/api"
+	"goAccounting/internal/api/aiAPI"
+	"net/http"
 )
 
 func RegisterAIRoutes() {
-    http.HandleFunc("/api/voice", api.VoiceInputHandler)
-    http.HandleFunc("/api/ocr", api.OCRInputHandler)
-    http.HandleFunc("/api/chat", api.ChatHandler)
+	http.HandleFunc("/api/voice", aiAPI.VoiceInputHandler)
+	http.HandleFunc("/api/ocr", aiAPI.OCRInputHandler)
+	http.HandleFunc("/api/chat", aiAPI.ChatHandler)
 }

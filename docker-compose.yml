@@ -46,7 +46,7 @@ services:
       - ./init-sql:/docker-entrypoint-initdb.d
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-hhypnos", "-phypnos"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "hypnos", "-phypnos"]
       interval: 10s
       timeout: 5s
       retries: 5
