@@ -25,6 +25,10 @@ type FinancialReport struct {
 	GeneratedAt time.Time `json:"generated_at"`
 }
 
+func NewReportService() *ReportService {
+	return &ReportService{}
+}
+
 func (rs *ReportService) GenerateWeeklyReport(data FinancialData, ctx context.Context) (*FinancialReport, error) {
 	// 调用大模型API生成周报
 	//prompt := fmt.Sprintf("基于以下财务数据生成周报：收入%.2f，支出%.2f，储蓄%.2f",
@@ -71,4 +75,18 @@ func (rs *ReportService) GenerateYearlyReport(data FinancialData, ctx context.Co
 	}
 
 	return report, nil
+}
+
+func (rs *ReportService) GetUserReports(userId uint, period string, limit int) ([]FinancialReport, error) {
+	// TODO: Implement database query
+	reports := []FinancialReport{
+		{
+			Period:      period,
+			Summary:     "示例报告",
+			Advice:      "示例建议",
+			Score:       80,
+			GeneratedAt: time.Now(),
+		},
+	}
+	return reports, nil
 }

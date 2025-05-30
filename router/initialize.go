@@ -15,6 +15,7 @@ var (
 	NoTourist *gin.RouterGroup
 )
 
+// Public/Private 路由组初始化后可用于注册路由
 func init() {
 	fmt.Println("starting init PUBLIC router")
 	if Engine == nil {

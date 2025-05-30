@@ -7,12 +7,12 @@ System:
  ClientSignKey: ""
 
 Redis:
-  Addr: "127.0.0.1:6379"
+  Addr: "redis:6379"
   Password: ""
   Db: 0
 
 Mysql:
-  Path: "127.0.0.1"
+  Path: "mysql"
   Port: "3306"
   Config: "parseTime=True&loc=Local"
   DbName: "Accounting"

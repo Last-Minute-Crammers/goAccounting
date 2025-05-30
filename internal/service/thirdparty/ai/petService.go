@@ -23,6 +23,10 @@ type FinancialGoal struct {
 	Completed bool    `json:"completed"`
 }
 
+func NewPetService() *PetService {
+	return &PetService{}
+}
+
 func (ps *PetService) UpdatePetMood(goal FinancialGoal, ctx context.Context) (*PetMood, error) {
 	// 根据理财目标完成情况调用AI生成心情和鼓励语
 	completionRate := goal.Current / goal.Target
@@ -82,4 +86,13 @@ func (ps *PetService) GetDailyEncouragement(ctx context.Context) (string, error)
 
 	encouragement := encouragements[rand.Intn(len(encouragements))]
 	return encouragement, nil
+}
+
+func (ps *PetService) GetUserPet(userId uint) (*PetMood, error) {
+	// TODO: Implement database query
+	return &PetMood{
+		Mood:          "开心",
+		Encouragement: "你今天做得很棒！",
+		UpdatedAt:     time.Now(),
+	}, nil
 }
