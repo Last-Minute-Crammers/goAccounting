@@ -2,50 +2,36 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
-
-	//"fmt"
-	"context"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-
-	// 添加 CORS 导入 - 虽然在这里不直接使用，但确保依赖可用
-	_ "github.com/gin-contrib/cors"
 
 	_ "goAccounting/global"
 	"goAccounting/initialize"
 	"goAccounting/router"
 )
 
-var httpServer *http.Server
-
 func main() {
-	_ = initialize.Config
-
-	httpServer = &http.Server{
-		Addr:           fmt.Sprintf(":%d", initialize.Config.System.Addr),
+	// 初始化配置
+	config := initialize.Config
+	
+	// 启动HTTP服务器
+	addr := fmt.Sprintf(":%d", config.System.Addr)
+	log.Printf("Starting server on %s", addr)
+	
+	server := &http.Server{
+		Addr:           addr,
 		Handler:        router.Engine,
-		WriteTimeout:   5 * time.Second,
-		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   30 * time.Second,
+		ReadTimeout:    30 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	err := httpServer.ListenAndServe()
-	if err != nil {
-		panic(err)
+	
+	log.Printf("Server is running on http://localhost%s", addr)
+	log.Printf("Health check: http://localhost%s/health", addr)
+	log.Printf("Category API: http://localhost%s/api/v1/user/category/list", addr)
+	
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("Failed to start server: %v", err)
 	}
-	shutDown()
-}
-
-func shutDown() {
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("Shutting down server ...")
-	if err := httpServer.Shutdown(context.TODO()); err != nil {
-		log.Fatal("Server forced to shutdown: ", err)
-	}
-	log.Println("Server exiting")
 }

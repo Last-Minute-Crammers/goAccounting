@@ -3,34 +3,35 @@ package response
 import (
 	"goAccounting/global/constant"
 	categoryModel "goAccounting/internal/model/category"
-	"goAccounting/util/dataTool"
+	"time"
 )
 
 type CategoryOne struct {
-	Id            uint
-	Name          string
-	IncomeExpense constant.IncomeExpense
+	ID            uint                       `json:"id"`
+	Name          string                     `json:"name"`
+	Icon          string                     `json:"icon"`
+	IncomeExpense constant.IncomeExpense     `json:"income_expense"`
+	UserId        *uint                      `json:"user_id,omitempty"`
+	CreatedAt     time.Time                  `json:"created_at"`
+	UpdatedAt     time.Time                  `json:"updated_at"`
 }
 
-func (co *CategoryOne) SetData(category categoryModel.Category) error {
-	co.Id = category.ID
-	co.Name = category.Name
-	co.IncomeExpense = category.IncomeExpense
-	return nil
+func (c *CategoryOne) SetData(category categoryModel.Category) {
+	c.ID = category.ID
+	c.Name = category.Name
+	c.Icon = category.Icon
+	c.IncomeExpense = category.IncomeExpense
+	c.UserId = category.UserId
+	c.CreatedAt = category.CreatedAt
+	c.UpdatedAt = category.UpdatedAt
 }
 
 type CategoryDetailList []CategoryOne
 
-func (cdl *CategoryDetailList) SetData(categoryList dataTool.Slice[uint, categoryModel.Category]) error {
-	*cdl = make(CategoryDetailList, len(categoryList))
-	if len(categoryList) == 0 {
-		return nil
-	}
-	for i, category := range categoryList {
-		err := (*cdl)[i].SetData(category)
-		if err != nil {
-			return err
-		}
+func (c *CategoryDetailList) SetData(categories []categoryModel.Category) error {
+	*c = make([]CategoryOne, len(categories))
+	for i, category := range categories {
+		(*c)[i].SetData(category)
 	}
 	return nil
 }

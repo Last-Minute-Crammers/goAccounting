@@ -6,12 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var Engine *gin.Engine
-
 func init() {
 	fmt.Println("router.engine: start init engine")
-	Engine = gin.Default()
-	if Engine == nil {
-		fmt.Println("router.engine: engine is NIL")
-	}
+	// 这里只做一些基础配置，实际的 Engine 在 router.go 中定义
 }
