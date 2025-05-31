@@ -1,7 +1,8 @@
 # 问题求解实战项目开发 -- goAccounting server端
 
 ## 注意事项
-- Gong的WSL中MySQL端口配置为3307，假如push到云端需要修改为3306
+- docker compose up -d出错时，可以试一下docker compose down随后再docker compose up -d --build完全重构
+- 这时有时候会出现网络问题，那就可以先通过docker pull golang:1.24-alpine和docker pull alpine:latest手动拉取镜像
 
 ## 更新list
 ---

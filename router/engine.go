@@ -13,5 +13,7 @@ func init() {
 	Engine = gin.Default()
 	if Engine == nil {
 		fmt.Println("router.engine: engine is NIL")
+	} else {
+		fmt.Println("router.engine: engine initialized successfully")
 	}
 }

@@ -2,7 +2,7 @@ Mode: debug
 
 System:
  Addr: 8080
- RouterPrefix: ""
+ RouterPrefix: "/api"
  JwtKey: ""
  ClientSignKey: ""
 

@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	Public  *gin.RouterGroup
-	Private *gin.RouterGroup
+	PublicRouterGroup *gin.RouterGroup
+	Private           *gin.RouterGroup
 
 	NoTourist *gin.RouterGroup
 )
@@ -22,7 +22,7 @@ func init() {
 		fmt.Println("router: engine is NIL")
 		return
 	}
-	Public = Engine.Group(global.Config.System.RouterPrefix + "/public")
+	PublicRouterGroup = Engine.Group(global.Config.System.RouterPrefix + "/public")
 	fmt.Println("starting init PRIVATE router")
 	Private = Engine.Group(global.Config.System.RouterPrefix, middleware.JWTAuth())
 	fmt.Println("init basic router success")
