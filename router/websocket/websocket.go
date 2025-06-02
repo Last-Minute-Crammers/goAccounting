@@ -44,3 +44,23 @@ func UpgradeToWebsocket(handler func(conn *websocket.Conn, ctx *gin.Context) err
 
 	}
 }
+
+func RegisterWebsocketRoutes(router *gin.Engine) {
+	Private := router.Group("/private")
+	Private.GET("/ws/echo", UpgradeToWebsocket(EchoHandler))
+	// 可继续注册其他 websocket 路由
+}
+
+// 示例 handler
+func EchoHandler(conn *websocket.Conn, ctx *gin.Context) error {
+	for {
+		mt, message, err := conn.ReadMessage()
+		if err != nil {
+			return err
+		}
+		err = conn.WriteMessage(mt, message)
+		if err != nil {
+			return err
+		}
+	}
+}

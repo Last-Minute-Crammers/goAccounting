@@ -11,7 +11,6 @@ var Public *gin.RouterGroup
 
 func RegisterPublicRoutes() {
 	if Public == nil {
-		// 使用 RouterPrefix
 		Public = Engine.Group(initialize.Config.System.RouterPrefix + "/public")
 	}
 
@@ -24,4 +23,6 @@ func RegisterPublicRoutes() {
 	// 用户登录与注册
 	Public.POST("/user/login", userApi.Login)
 	Public.POST("/user/register", userApi.Register)
+	// 可继续补充如验证码、邮箱等公开接口
+	// Public.POST("/user/send_captcha", userApi.SendCaptcha)
 }

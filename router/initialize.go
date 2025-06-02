@@ -11,8 +11,7 @@ import (
 var (
 	PublicRouterGroup *gin.RouterGroup
 	Private           *gin.RouterGroup
-
-	NoTourist *gin.RouterGroup
+	NoTourist         *gin.RouterGroup
 )
 
 // Public/Private 路由组初始化后可用于注册路由
@@ -26,4 +25,12 @@ func init() {
 	fmt.Println("starting init PRIVATE router")
 	Private = Engine.Group(global.Config.System.RouterPrefix, middleware.JWTAuth())
 	fmt.Println("init basic router success")
+
+	// 注册所有路由
+	RegisterPublicRoutes()
+	RegisterUserRoutes()
+	RegisterTransactionRoutes()
+	RegisterAIRoutes()
+	RegisterCategoryRoutes()
+	// 可继续注册其他路由，如 RegisterCategoryRoutes() 等
 }
