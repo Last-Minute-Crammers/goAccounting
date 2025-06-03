@@ -462,3 +462,28 @@ func (u *UserApi) GetFriendInvitationList(ctx *gin.Context) {
 	}
 	response.OkWithData(response.List[response.UserFriendInvitation]{List: responseData}, ctx)
 }
+
+// GetHome 获取用户首页数据
+func (u *UserApi) GetHome(ctx *gin.Context) {
+	// TODO: 实现用户首页数据获取逻辑
+	mockData := map[string]interface{}{
+		"user_name": "用户",
+		"balance":   0,
+		"income":    0,
+		"expense":   0,
+	}
+
+	response.OkWithData(mockData, ctx)
+}
+
+// GetStats 获取用户统计数据
+func (u *UserApi) GetStats(ctx *gin.Context) {
+	// TODO: 实现用户统计数据获取逻辑
+	mockData := map[string]interface{}{
+		"total_income":  0,
+		"total_expense": 0,
+		"total_balance": 0,
+	}
+
+	response.OkWithData(mockData, ctx)
+}

@@ -1,10 +1,8 @@
 package categoryModel
 
 import (
-	"errors"
 	"goAccounting/global"
 	"goAccounting/global/constant"
-	"goAccounting/util"
 
 	"gorm.io/gorm"
 )

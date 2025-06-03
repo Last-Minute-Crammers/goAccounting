@@ -6,7 +6,8 @@ import (
     "net/http"
     "time"
 
-    _ "goAccounting/global"
+    // 暂时注释掉 global 导入
+    // _ "goAccounting/global"
     "goAccounting/initialize"
     "goAccounting/router"
 )
