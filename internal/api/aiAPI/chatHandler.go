@@ -11,12 +11,12 @@ import (
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	userInput := r.FormValue("input")
 	chatService := aiService.ChatService{}
-	response, err := chatService.GetChatResponse(userInput, r.Context())
+	responseText, err := chatService.GetChatResponse(userInput, r.Context())
 	if err != nil {
-		http.Error(w, "对话失败", http.StatusInternalServerError)
+		http.Error(w, "对话失败: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(fmt.Sprintf("智能体回复: %s", response)))
+	w.Write([]byte(fmt.Sprintf("智能体回复: %s", responseText)))
 }
 
 // Gin 适配器
@@ -29,10 +29,10 @@ func GinChatHandler(ctx *gin.Context) {
 		return
 	}
 	chatService := aiService.ChatService{}
-	response, err := chatService.GetChatResponse(req.Input, ctx)
+	responseText, err := chatService.GetChatResponse(req.Input, ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "对话失败"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "对话失败: " + err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"result": response})
+	ctx.JSON(http.StatusOK, gin.H{"result": responseText})
 }

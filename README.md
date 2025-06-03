@@ -4,6 +4,12 @@
 - docker compose up -d出错时，可以试一下docker compose down随后再docker compose up -d --build完全重构
 - 这时有时候会出现网络问题，那就可以先通过docker pull golang:1.24-alpine和docker pull alpine:latest手动拉取镜像
 
+## 前后端协作说明
+
+- 前端项目（ai-finance-frontend）通过 HTTP 请求本服务的 API（默认端口8080）。
+- 启动本服务后，确保前端的 API 地址指向本服务（可在前端 `uni.scss` 文件中配置）。
+- 推荐开发时前后端分别运行，生产环境可通过 Nginx 等方式反向代理。
+
 ## 更新list
 ---
 ### 已do list

@@ -18,9 +18,6 @@ var httpServer *http.Server
 func main() {
 	_ = initialize.Config
 
-	router.RegisterPublicRoutes()
-	router.RegisterAIRoutes()
-
 	// 打印路由表
 	foundPingRoute := false
 	for _, r := range router.Engine.Routes() {
@@ -30,7 +27,7 @@ func main() {
 		}
 	}
 
-	if !foundPingRoute {
+	if (!foundPingRoute) {
 		log.Fatal("Route /api/public/ping not found")
 	}
 
