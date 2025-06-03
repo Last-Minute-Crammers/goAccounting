@@ -20,6 +20,12 @@ func init() {
 		ExposeHeaders: []string{"Content-Length"},
 		//AllowCredentials: true,
 	}))
+
+	// 添加测试路由，不需要认证
+	Engine.GET("/test", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{"message": "测试路由正常", "status": "ok"})
+	})
+
 	if Engine == nil {
 		fmt.Println("router.engine: engine is NIL")
 	} else {

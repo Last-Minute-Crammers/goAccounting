@@ -1,3 +1,6 @@
+// 使用 curl 测试 AI 对话接口：
+// curl -X POST -H "Content-Type: application/json" -d '{"input":"你好"}' http://localhost:8080/api/v1/ai/chat
+
 package aiAPI
 
 import (

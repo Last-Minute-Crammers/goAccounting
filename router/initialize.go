@@ -14,6 +14,21 @@ var (
 	NoTourist         *gin.RouterGroup
 )
 
+// 添加占位符路由注册函数
+func RegisterTransactionRoutesPlaceholder() {
+	// TODO: 实现交易相关路由
+	Private.GET("/transaction/list", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{"message": "Transaction routes not implemented yet"})
+	})
+}
+
+func RegisterCategoryRoutes() {
+	// TODO: 实现分类相关路由
+	Private.GET("/category/list", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{"message": "Category routes not implemented yet"})
+	})
+}
+
 // Public/Private 路由组初始化后可用于注册路由
 func init() {
 	fmt.Println("starting init PUBLIC router")
@@ -21,6 +36,8 @@ func init() {
 		fmt.Println("router: engine is NIL")
 		return
 	}
+
+	// 初始化路由组
 	PublicRouterGroup = Engine.Group(global.Config.System.RouterPrefix + "/public")
 	fmt.Println("starting init PRIVATE router")
 	Private = Engine.Group(global.Config.System.RouterPrefix, middleware.JWTAuth())
@@ -29,8 +46,9 @@ func init() {
 	// 注册所有路由
 	RegisterPublicRoutes()
 	RegisterUserRoutes()
-	RegisterTransactionRoutes()
+	RegisterTransactionRoutesPlaceholder()
 	RegisterAIRoutes()
 	RegisterCategoryRoutes()
-	// 可继续注册其他路由，如 RegisterCategoryRoutes() 等
+
+	fmt.Println("All routes registered successfully")
 }

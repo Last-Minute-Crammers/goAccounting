@@ -1,6 +1,7 @@
 package router
 
 import (
+	"goAccounting/global"
 	"goAccounting/initialize"
 	v1 "goAccounting/internal/api/v1"
 
@@ -13,6 +14,16 @@ func RegisterPublicRoutes() {
 	if Public == nil {
 		Public = Engine.Group(initialize.Config.System.RouterPrefix + "/public")
 	}
+
+	// 健康检查端点，前端可以用来测试连接
+	Public.GET("/health", func(ctx *gin.Context) {
+		status := global.HealthCheck()
+		ctx.JSON(200, gin.H{
+			"message":  "Backend service is running",
+			"status":   "ok",
+			"services": status,
+		})
+	})
 
 	// 示例公开接口，可根据实际需求添加
 	Public.GET("/ping", func(ctx *gin.Context) {

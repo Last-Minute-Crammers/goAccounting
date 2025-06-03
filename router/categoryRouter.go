@@ -4,7 +4,7 @@ import (
 	v1 "goAccounting/internal/api/v1"
 )
 
-func RegisterCategoryRoutes() {
+func RegisterCategoryRoutesV1() {
 	categoryApi := new(v1.CategoryApi)
 	Private.POST("/category", categoryApi.CreateCategory)
 	Private.PUT("/category/:id", categoryApi.UpdateCategory)
