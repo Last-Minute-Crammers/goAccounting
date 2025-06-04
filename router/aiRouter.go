@@ -15,7 +15,5 @@ func RegisterAIRoutes() {
 	Public.POST("/ai/ocr", func(ctx *gin.Context) {
 		aiAPI.GinOCRInputHandler(ctx)
 	})
-	Public.POST("/ai/chat", func(ctx *gin.Context) {
-		aiAPI.GinChatHandler(ctx)
-	})
+	Public.POST("/ai/chat", aiAPI.GinChatHandler)
 }

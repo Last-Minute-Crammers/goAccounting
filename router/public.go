@@ -30,6 +30,11 @@ func RegisterPublicRoutes() {
 		ctx.JSON(200, gin.H{"msg": "pong"})
 	})
 
+	// 新增 /test 路由
+	Public.GET("/test", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{"msg": "test ok"})
+	})
+
 	userApi := new(v1.PublicApi)
 	// 用户登录与注册
 	Public.POST("/user/login", userApi.Login)

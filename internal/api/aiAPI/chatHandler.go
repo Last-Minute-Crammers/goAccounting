@@ -1,5 +1,5 @@
 // 使用 curl 测试 AI 对话接口：
-// curl -X POST -H "Content-Type: application/json" -d '{"input":"你好"}' http://localhost:8080/api/public/ai/chat
+// curl -X POST -H "Content-Type: application/json" -d '{"message":"你好"}' http://localhost:8080/api/public/ai/chat
 
 package aiAPI
 
@@ -13,7 +13,7 @@ import (
 )
 
 type ChatRequest struct {
-	Input string `json:"input" binding:"required"`
+	Message string `json:"message" binding:"required"`
 }
 
 type ChatResponse struct {
@@ -46,7 +46,7 @@ func GinChatHandler(ctx *gin.Context) {
 		return
 	}
 
-	if req.Input == "" {
+	if req.Message == "" {
 		ctx.JSON(http.StatusBadRequest, ChatResponse{
 			Success: false,
 			Error:   "输入内容不能为空",
@@ -54,16 +54,16 @@ func GinChatHandler(ctx *gin.Context) {
 		return
 	}
 
-	log.Printf("收到AI对话请求: %s", req.Input)
+	log.Printf("收到AI对话请求: %s", req.Message)
 
 	chatService := &aiService.ChatService{}
-	responseText, err := chatService.GetChatResponse(req.Input, ctx.Request.Context())
+	responseText, err := chatService.GetChatResponse(req.Message, ctx.Request.Context())
 	if err != nil {
 		log.Printf("AI对话失败: %v", err)
 		ctx.JSON(http.StatusInternalServerError, ChatResponse{
 			Success: false,
 			Error:   "对话失败: " + err.Error(),
-			Debug:   fmt.Sprintf("请求内容: %s", req.Input),
+			Debug:   fmt.Sprintf("请求内容: %s", req.Message),
 		})
 		return
 	}
