@@ -3,7 +3,7 @@ package aiAPI
 import (
 	"fmt"
 	aiService "goAccounting/internal/service/thirdparty/ai"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,10 +15,10 @@ func OCRInputHandler(w http.ResponseWriter, r *http.Request) {
 	ocrService := aiService.OCRService{}
 	text, err := ocrService.ExtractTextFromImage(imageData, r.Context())
 	if err != nil {
-		http.Error(w, "OCR 识别失败", http.StatusInternalServerError)
+		http.Error(w, "OCR识别失败", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(fmt.Sprintf("提取结果: %s", text)))
+	w.Write([]byte(fmt.Sprintf("识别结果: %s", text)))
 }
 
 // Gin 适配器
@@ -29,16 +29,19 @@ func GinOCRInputHandler(ctx *gin.Context) {
 		return
 	}
 	defer file.Close()
-	imageData, err := ioutil.ReadAll(file)
+
+	imageData, err := io.ReadAll(file)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "图片读取失败"})
 		return
 	}
-	ocrService := aiService.OCRService{}
-	text, err := ocrService.ExtractTextFromImage(imageData, ctx)
+
+	ocrService := &aiService.OCRService{}
+	text, err := ocrService.ExtractTextFromImage(imageData, ctx.Request.Context())
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "OCR 识别失败"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "OCR识别失败: " + err.Error()})
 		return
 	}
+
 	ctx.JSON(http.StatusOK, gin.H{"result": text})
 }
