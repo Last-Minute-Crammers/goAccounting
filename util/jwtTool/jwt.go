@@ -3,6 +3,7 @@ package jwtTool
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -35,4 +36,21 @@ func ParseToken(tokenStr string, key []byte) (claims jwt.RegisteredClaims, err e
 		err = errors.New("parse token fail")
 	}
 	return
+}
+
+func ParseUserIdFromToken(tokenStr string, key []byte) (uint, error) {
+	claims, err := ParseToken(tokenStr, key)
+	if err != nil {
+		return 0, err
+	}
+	// userId 存在于 claims.Subject
+	// 你登录时生成 token 时，claims.Subject 应该写成用户id的字符串
+	if claims.Subject == "" {
+		return 0, errors.New("userId(subject) not found in token")
+	}
+	id, err := strconv.Atoi(claims.Subject)
+	if err != nil {
+		return 0, errors.New("userId(subject) not uint")
+	}
+	return uint(id), nil
 }

@@ -7,6 +7,8 @@ import (
 	"goAccounting/internal/api/response"
 	transactionModel "goAccounting/internal/model/transaction"
 	userModel "goAccounting/internal/model/user"
+	"log"
+	"reflect"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -75,23 +77,31 @@ func (cf *contextFunc) GetUint(key constant.Key, ctx *gin.Context) uint {
 	if len(param) != 0 {
 		id, err := strconv.Atoi(param)
 		if err != nil {
+			log.Printf("[GetUint] ctx.Param(%v) parse error: %v", key, err)
 			panic(err)
 		}
 		return uint(id)
 	}
-	switch value := ctx.Value(string(key)).(type) {
+	value := ctx.Value(string(key))
+	log.Printf("[GetUint] ctx.Value(%v) = %#v, type: %T", key, value, value)
+	switch v := value.(type) {
 	case uint:
-		return value
+		return v
 	case int:
-		return uint(value)
+		return uint(v)
 	case string:
-		id, err := strconv.Atoi(value)
+		id, err := strconv.Atoi(v)
 		if err != nil {
+			log.Printf("[GetUint] string to int error: %v", err)
 			panic(err)
 		}
 		return uint(id)
+	case nil:
+		log.Printf("[GetUint] value is nil for key: %v", key)
+		panic("userId not found in context")
 	default:
-		return value.(uint)
+		log.Printf("[GetUint] unknown value type for key %v: %v (%v)", key, v, reflect.TypeOf(v))
+		panic("userId is not a recognized type")
 	}
 }
 

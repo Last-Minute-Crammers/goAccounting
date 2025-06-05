@@ -3,7 +3,7 @@ Mode: debug
 System:
  Addr: 8080
  RouterPrefix: "/api"
- JwtKey: ""
+ JwtKey: "test"
  ClientSignKey: ""
 
 Redis:

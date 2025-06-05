@@ -3,13 +3,13 @@ package middleware
 import (
 	"net/http"
 	"strings"
+	"goAccounting/util/jwtTool"
 
 	"github.com/gin-gonic/gin"
 )
 
 func JWTAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// 获取 Authorization header
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -19,8 +19,6 @@ func JWTAuth() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-
-		// 检查 Bearer token 格式
 		tokenString := ""
 		if strings.HasPrefix(authHeader, "Bearer ") {
 			tokenString = authHeader[7:]
@@ -32,7 +30,6 @@ func JWTAuth() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-
 		if tokenString == "" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
@@ -42,16 +39,17 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
-		// TODO: 在这里添加 JWT token 验证逻辑
-		// 暂时跳过验证，实际项目中需要验证 JWT token
-		// if !validateJWTToken(tokenString) {
-		//     ctx.JSON(http.StatusUnauthorized, gin.H{
-		//         "code":    401,
-		//         "message": "Invalid token",
-		//     })
-		//     ctx.Abort()
-		//     return
-		// }
+		userId, err := jwtTool.ParseUserIdFromToken(tokenString, []byte(jwtTool.SignKey))
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"code":    401,
+				"message": "Invalid token: " + err.Error(),
+			})
+			ctx.Abort()
+			return
+		}
+		// 这里的 "userId" 要和 GetUserId 用的是同一个 key，区分大小写
+		ctx.Set("userId", userId)
 
 		ctx.Next()
 	}

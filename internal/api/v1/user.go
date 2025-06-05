@@ -152,6 +152,7 @@ func (p *PublicApi) Register(ctx *gin.Context) {
 //	@Success	200		{object}	response.Data{Data=response.UserHome}
 //	@Router		/user/home [get]
 func (u *UserApi) Home(ctx *gin.Context) {
+	log.Println("[api]: get into Home")
 	user, err := contextFunc.GetUser(ctx)
 	if responseError(err, ctx) {
 		return
