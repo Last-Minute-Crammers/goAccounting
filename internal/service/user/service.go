@@ -61,21 +61,24 @@ func (userSvc *User) updateDataAfterLogin(user userModel.User, ctx context.Conte
 }
 
 func (userSvc *User) Register(data userModel.AddData, ctx context.Context) (userModel.User, error) {
+	log.Println("[service]: starting register")
+	log.Printf("[service]: userService.Register param: %+v\n", data)
 	dao := userModel.NewDao(db.Get(ctx))
-	user := userModel.User{}
+
 	err := dao.CheckEmail(data.Email)
 	if err != nil {
-		return user, err
+		return userModel.User{}, err
 	}
-	user.Password, err = commonService.Common.HashPassword(user.Password)
+
+	// 正确 hash 密码
+	hashedPW, err := commonService.Common.HashPassword(data.Password)
 	if err != nil {
-		return user, err
+		return userModel.User{}, err
 	}
-	user, err = dao.AddUser(userModel.AddData{
-		Username: user.Username,
-		Password: user.Password,
-		Email:    user.Email,
-	})
+	data.Password = hashedPW
+
+	log.Printf("[service]: addData param: %+v\n", data)
+	user, err := dao.AddUser(data)
 	if err != nil {
 		return user, err
 	}

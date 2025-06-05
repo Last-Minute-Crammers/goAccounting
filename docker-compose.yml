@@ -1,5 +1,4 @@
 services:
-  # Go后端服务
   api:
     build:
       context: .
@@ -15,14 +14,8 @@ services:
         condition: service_healthy
     environment:
       TZ: Asia/Shanghai
-      # 以下环境变量可以在 config.yaml 里引用，也可在此直接指定
-      # DB_HOST: mysql
-      # DB_PORT: 3306
-      # DB_USER: hypnos
-      # DB_PASS: hypnos
-      # REDIS_HOST: redis
-      # REDIS_PORT: 6379
     volumes:
+      #- .:/app
       - ./config.yaml:/app/config.yaml
       - ./logs:/app/logs
       - ./data:/app/data
@@ -43,7 +36,7 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init-sql:/docker-entrypoint-initdb.d
+      #- ./init-sql:/docker-entrypoint-initdb.d
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "hypnos", "-phypnos"]
@@ -69,21 +62,6 @@ services:
       retries: 5
     networks:
       - goaccounting-network
-
-  # swagger-ui (如需API文档可取消注释)
-  # swagger-ui:
-  #   image: swaggerapi/swagger-ui
-  #   container_name: goaccounting-swagger
-  #   restart: always
-  #   ports:
-  #     - "8081:8080"
-  #   environment:
-  #     API_URL: http://localhost:8080/public/swagger/doc.json
-  #     BASE_URL: /swagger
-  #   depends_on:
-  #     - api
-  #   networks:
-  #     - goaccounting-network
 
 networks:
   goaccounting-network:

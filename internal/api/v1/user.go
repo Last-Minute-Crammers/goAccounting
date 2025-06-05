@@ -120,9 +120,10 @@ func (p *PublicApi) Register(ctx *gin.Context) {
 		response.FailToParameter(ctx, err)
 		return
 	}
-
+	log.Printf("[api]: register param: %+v\n", requestData)
 	data := userModel.AddData{Username: requestData.Username, Password: requestData.Password, Email: requestData.Email}
 
+	log.Printf("[api]: addData param: %+v\n", data)
 	user, err := userService.Register(data, ctx)
 	if responseError(err, ctx) {
 		return

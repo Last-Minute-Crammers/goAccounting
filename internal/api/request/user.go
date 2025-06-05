@@ -11,10 +11,10 @@ type UserLogin struct {
 }
 
 type UserRegister struct {
-	Username string `binding:"required"`
-	Password string `binding:"required"`
-	Email    string `binding:"required,email"`
-	Captcha  string `binding:"required"`
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Captcha  string `json:"captcha" binding:"required"`
 }
 
 type UserUpdateInfo struct {

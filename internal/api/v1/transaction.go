@@ -5,6 +5,7 @@ import (
 	"goAccounting/internal/api/response"
 	transactionModel "goAccounting/internal/model/transaction"
 	"goAccounting/util/timeTool"
+	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -106,6 +107,7 @@ func (t *TransactionApi) CreateOne(ctx *gin.Context) {
 	if err = responseData.SetData(transaction); responseError(err, ctx) {
 		return
 	}
+	log.Println("[tx] : create sucess")
 	response.OkWithData(responseData, ctx)
 }
 

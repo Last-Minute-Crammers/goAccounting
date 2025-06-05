@@ -27,7 +27,7 @@ func main() {
 		}
 	}
 
-	if (!foundPingRoute) {
+	if !foundPingRoute {
 		log.Fatal("Route /api/public/ping not found")
 	}
 

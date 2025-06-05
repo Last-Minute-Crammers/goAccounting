@@ -3,6 +3,7 @@ package response
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -56,6 +57,7 @@ func Fail(ctx *gin.Context) {
 	ResponseAndAbort(500, map[string]interface{}{}, "服务器睡了（这年龄你睡得着！）", ctx)
 }
 func FailToParameter(ctx *gin.Context, err error) {
+	log.Println("[getData]: cannot read the json")
 	ResponseAndAbort(400, map[string]interface{}{}, "参数错误"+err.Error(), ctx)
 }
 
