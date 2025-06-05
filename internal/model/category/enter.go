@@ -1,6 +1,9 @@
 package categoryModel
 
-import "goAccounting/global/db"
+import (
+	"goAccounting/global/constant"
+	"goAccounting/global/db"
+)
 
 func init() {
 	tables := []any{
@@ -21,17 +24,18 @@ func initDefaultCategories() {
 	if count > 0 {
 		return
 	}
+
 	expenses := []Category{
-		{Name: "餐饮", Icon: "food", IncomeExpense: "支出"},
-		{Name: "交通", Icon: "transportation", IncomeExpense: "支出"},
-		{Name: "购物", Icon: "shop", IncomeExpense: "支出"},
-		{Name: "娱乐", Icon: "game", IncomeExpense: "支出"},
+		{Name: "food", Icon: "food", IncomeExpense: constant.Expense},
+		{Name: "transportation", Icon: "transportation", IncomeExpense: constant.Expense},
+		{Name: "shop", Icon: "shop", IncomeExpense: constant.Expense},
+		{Name: "game", Icon: "game", IncomeExpense: constant.Expense},
 	}
 
 	incomes := []Category{
-		{Name: "工资", Icon: "salary", IncomeExpense: "收入"},
-		{Name: "奖金", Icon: "bonus", IncomeExpense: "收入"},
-		{Name: "投资", Icon: "invest", IncomeExpense: "收入"},
+		{Name: "salary", Icon: "salary", IncomeExpense: constant.Income},
+		{Name: "bonus", Icon: "bonus", IncomeExpense: constant.Income},
+		{Name: "invest", Icon: "invest", IncomeExpense: constant.Income},
 	}
 
 	db.InitDb.Create(&expenses)
