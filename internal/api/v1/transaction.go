@@ -82,6 +82,7 @@ func (t *TransactionApi) GetList(ctx *gin.Context) {
 //	@Success	200			{object}	response.Data{Data=response.TransactionDetail}
 //	@Router		/user/transaction/ [post]
 func (t *TransactionApi) CreateOne(ctx *gin.Context) {
+	log.Println("[api]: get into CreateOne")
 	var requestData request.TransactionCreateOne
 	if err := ctx.ShouldBindJSON(&requestData); err != nil {
 		response.FailToParameter(ctx, err)

@@ -171,7 +171,8 @@ func (u *UserApi) Home(ctx *gin.Context) {
 		return
 	}
 	responseData := gin.H{
-		"month_amount": result.Income.Amount + result.Expense.Amount,
+		"month_amount": result.Income.Amount - result.Expense.Amount,
+		"month_expense": result.Expense.Amount,
 		// "income": result.Income.Amount,
 		// "expense": result.Expense.Amount,
 	}

@@ -4,6 +4,7 @@ import (
 	"goAccounting/global/constant"
 	"goAccounting/global/db"
 	transactionModel "goAccounting/internal/model/transaction"
+	"log"
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -17,6 +18,7 @@ func (t *Transaction) Create(
 	recordType transactionModel.RecordType,
 	ctx context.Context,
 ) (transactionModel.Transaction, error) {
+	log.Println("[service]: get into create")
 	err := transInfo.CheckValid(db.GetDb(ctx))
 	if err != nil {
 		return transactionModel.Transaction{}, err

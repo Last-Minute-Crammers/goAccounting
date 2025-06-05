@@ -49,6 +49,7 @@ func init() {
 	RegisterUserRoutes()
 	RegisterTransactionRoutesPlaceholder()
 	RegisterCategoryRoutes()
+	RegisterTransactionRoutes()
 
 	fmt.Println("All routes registered successfully")
 }

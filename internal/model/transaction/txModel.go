@@ -5,6 +5,7 @@ import (
 	"goAccounting/global/constant"
 	categoryModel "goAccounting/internal/model/category"
 	commonModel "goAccounting/internal/model/common"
+	"log"
 	"time"
 
 	"gorm.io/gorm"
@@ -39,17 +40,16 @@ type Transaction struct {
 }
 
 func (i *Info) CheckValid(db *gorm.DB) error {
+	log.Println("[model]: get into txModelCheckvalid")
 	category, err := categoryModel.NewDao(db).SelectById(i.CategoryId)
 	if err != nil {
 		return err
 	}
-	switch true {
-	case i.Amount < 0:
-		return errors.New("transaction CheckValid: negative amount")
-
-	case i.IncomeExpense != category.IncomeExpense:
-		return errors.New("transaction CheckValid: negative amount")
-
+	if i.Amount <= 0 {
+		return errors.New("transaction CheckValid: amount must be positive")
+	}
+	if i.IncomeExpense != category.IncomeExpense {
+		return errors.New("transaction CheckValid: IncomeExpense mismatch with category")
 	}
 	return nil
 }
