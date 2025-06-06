@@ -42,6 +42,7 @@ func (t *TransactionApi) GetOne(ctx *gin.Context) {
 //	@Success	200			{object}	response.Data{Data=response.List[response.TransactionDetail]{}}
 //	@Router		/user/transaction/list [get]
 func (t *TransactionApi) GetList(ctx *gin.Context) {
+	log.Println("[api]: get into GetList")
 	var requestData request.TransactionGetList
 	if err := ctx.ShouldBindJSON(&requestData); err != nil {
 		response.FailToParameter(ctx, err)
@@ -51,15 +52,17 @@ func (t *TransactionApi) GetList(ctx *gin.Context) {
 		response.FailToParameter(ctx, err)
 		return
 	}
-	_, err := contextFunc.GetUser(ctx)
-	if responseError(err, ctx) {
-		return
-	}
 
-	// select and response
+	// 用工具函数获取 userId
+	userId := contextFunc.GetUserId(ctx)
+
 	condition := requestData.GetCondition()
+	// 只查当前用户
+	condition.UserId = userId
+	log.Printf("[api]: TxList, userId is %d\n", userId)
+
 	var transactionList []transactionModel.Transaction
-	transactionList, err = transactionModel.NewDao().GetListByCondition(
+	transactionList, err := transactionModel.NewDao().GetListByCondition(
 		condition, requestData.Offset, requestData.Limit,
 	)
 	if responseError(err, ctx) {
@@ -89,7 +92,11 @@ func (t *TransactionApi) CreateOne(ctx *gin.Context) {
 		return
 	}
 
+	// 用工具函数获取 userId
+	userId := contextFunc.GetUserId(ctx)
+
 	transInfo := transactionModel.Info{
+		UserId:        userId, // 关键点
 		CategoryId:    requestData.CategoryId,
 		IncomeExpense: requestData.IncomeExpense,
 		Amount:        requestData.Amount,

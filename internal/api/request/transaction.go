@@ -24,7 +24,6 @@ type TransactionUpdateOne struct {
 }
 
 type TransactionQueryCondition struct {
-	UserId        uint
 	CategoryIds   *[]uint
 	IncomeExpense *constant.IncomeExpense `binding:"omitempty,oneof=income expense"`
 	MinimumAmount *int                    `binding:"omitempty,min=0"`
@@ -45,7 +44,6 @@ func (t *TransactionQueryCondition) GetCondition() transactionModel.Condition {
 
 func (t *TransactionQueryCondition) GetForeignKeyCondition() transactionModel.ForeignKeyCondition {
 	return transactionModel.ForeignKeyCondition{
-		UserId:      t.UserId,
 		CategoryIds: t.CategoryIds,
 	}
 }
