@@ -161,3 +161,30 @@ func (t *TransactionApi) GetMonthStatistic(ctx *gin.Context) {
 	}
 	response.OkWithData(response.List[response.TransactionStatistic]{List: responseList}, ctx)
 }
+
+// GetTotalStatistic
+//
+//	@Tags		Transaction
+//	@Accept		json
+//	@Produce	json
+//	@Success	200			{object}	response.Data{Data=response.TransactionTotalStatistic}
+//	@Router		/user/transaction/statistic/total [get]
+func (t *TransactionApi) GetTotalStatistic(ctx *gin.Context) {
+	userId := contextFunc.GetUserId(ctx)
+	
+	dao := transactionModel.NewStatisticDao()
+	totalStats, err := dao.GetTotalStatistics(userId)
+	if responseError(err, ctx) {
+		return
+	}
+	
+	// Calculate total assets (income - expense) and convert to int
+	totalAssets := int(totalStats.Income.Amount - totalStats.Expense.Amount)
+	
+	responseData := response.TransactionTotalStatistic{
+		IEStatistic: totalStats,
+		TotalAssets: totalAssets,
+	}
+	
+	response.OkWithData(responseData, ctx)
+}

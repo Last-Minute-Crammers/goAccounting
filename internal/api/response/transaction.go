@@ -94,3 +94,8 @@ type TransactionCategoryAmountRank struct {
 	Category CategoryOne
 	global.AmountCount
 }
+
+type TransactionTotalStatistic struct {
+	global.IEStatistic
+	TotalAssets int `json:"total_assets"`
+}

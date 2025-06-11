@@ -88,6 +88,26 @@ func (s *StatisticDao) GetIeStatisticByCondition(ie *constant.IncomeExpense, con
 	return result, err
 }
 
+// GetTotalStatistics gets total income and expense statistics from user registration
+func (s *StatisticDao) GetTotalStatistics(userId uint) (result global.IEStatistic, err error) {
+	// Get total income
+	err = s.db.Table("transaction_income_account_statistic").
+		Where("user_id = ?", userId).
+		Select("COALESCE(SUM(amount), 0) as amount, COALESCE(SUM(count), 0) as count").
+		Scan(&result.Income).Error
+	if err != nil {
+		return
+	}
+	
+	// Get total expense
+	err = s.db.Table("transaction_expense_account_statistic").
+		Where("user_id = ?", userId).
+		Select("COALESCE(SUM(amount), 0) as amount, COALESCE(SUM(count), 0) as count").
+		Scan(&result.Expense).Error
+	
+	return result, err
+}
+
 // set time condition
 type CategoryAmountRankCondition struct {
 	User      userModel.User // in fact, we don't need it
