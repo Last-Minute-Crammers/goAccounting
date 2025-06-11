@@ -2,7 +2,6 @@ package categoryService
 
 import (
 	"errors"
-	"goAccounting/global"
 	"goAccounting/global/constant"
 	"goAccounting/global/db"
 	categoryModel "goAccounting/internal/model/category"
