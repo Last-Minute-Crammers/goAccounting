@@ -37,12 +37,12 @@ func (t *Transaction) Update(
 ) error {
 	txDao := transactionModel.NewDao(db.GetDb(ctx))
 	transaction, err := txDao.SelectById(id, true)
-	if err != nil {
+	if (err != nil) {
 		return err
 	}
 	transaction.Info = updatedInfo
 	err = t.UpdateStatistic(transaction.Info, ctx)
-	if err != nil {
+	if (err != nil) {
 		return err
 	}
 	return db.GetDb(ctx).Save(&transaction).Error
@@ -51,13 +51,13 @@ func (t *Transaction) Update(
 func (t *Transaction) Delete(id uint, ctx context.Context) error {
 	txDao := transactionModel.NewDao(db.GetDb(ctx))
 	transaction, err := txDao.SelectById(id, true)
-	if err != nil {
+	if (err != nil) {
 		return err
 	}
 	transInfo := transaction.Info
 	transInfo.Amount = -transInfo.Amount
 	err = t.UpdateStatistic(transInfo, ctx)
-	if err != nil {
+	if (err != nil) {
 		return err
 	}
 	return db.GetDb(ctx).Delete(&transaction).Error

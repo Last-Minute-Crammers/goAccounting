@@ -21,8 +21,10 @@ type _mysql struct {
 }
 
 func (m *_mysql) getDSN() string {
-	return m.Username + ":" + m.Password + "@tcp(" + m.Path + ":" + m.Port + ")/" + m.DbName + "?" + m.Config
+	// 添加charset=utf8mb4确保客户端连接使用正确的字符集
+	return m.Username + ":" + m.Password + "@tcp(" + m.Path + ":" + m.Port + ")/" + m.DbName + "?" + m.Config + "&charset=utf8mb4&parseTime=True&loc=Local"
 }
+
 func (m *_mysql) gormConfigInit() *gorm.Config {
 	config := &gorm.Config{
 		SkipDefaultTransaction: true,

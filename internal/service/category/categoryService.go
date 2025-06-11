@@ -21,9 +21,9 @@ func (c *Category) Create(
 		return categoryModel.Category{}, errors.New("分类名称不能为空")
 	}
 
-	// 2. 验证收支类型是否有效
-	if incomeExpense != "收入" && incomeExpense != "支出" {
-		return categoryModel.Category{}, errors.New("收支类型必须是'收入'或'支出'")
+	// 2. 验证收支类型是否有效 - 使用英文常量
+	if incomeExpense != constant.Income && incomeExpense != constant.Expense {
+		return categoryModel.Category{}, errors.New("收支类型必须是'income'或'expense'")
 	}
 
 	// 3. 从上下文获取当前用户ID作为AccountID
@@ -55,9 +55,9 @@ func (c *Category) Update(
 		return errors.New("分类ID不能为空")
 	}
 
-	// 2. 验证收支类型是否有效
-	if incomeExpense != "收入" && incomeExpense != "支出" {
-		return errors.New("收支类型必须是'收入'或'支出'")
+	// 2. 验证收支类型是否有效 - 使用英文常量
+	if incomeExpense != constant.Income && incomeExpense != constant.Expense {
+		return errors.New("收支类型必须是'income'或'expense'")
 	}
 
 	// 3. 获取数据库连接
@@ -115,7 +115,7 @@ func (c *Category) Delete(id uint, ctx context.Context) error {
 func (c *Category) List(incomeExpense *constant.IncomeExpense, ctx context.Context) ([]categoryModel.Category, error) {
 	// 从上下文获取当前用户ID
 	userId, exists := ctx.Value("userId").(uint)
-	if !exists || userId == 0 {
+	if (!exists || userId == 0) {
 		return nil, errors.New("用户未登录")
 	}
 

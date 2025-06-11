@@ -23,10 +23,7 @@ func RegisterTransactionRoutesPlaceholder() {
 }
 
 func RegisterCategoryRoutes() {
-	// TODO: 实现分类相关路由
-	Private.GET("/category/list", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{"message": "Category routes not implemented yet"})
-	})
+	RegisterCategoryRoutesV1()
 }
 
 // Public/Private 路由组初始化后可用于注册路由
@@ -47,7 +44,7 @@ func init() {
 	RegisterPublicRoutes()
 	RegisterAIRoutes() // AI routes now use Public group
 	RegisterUserRoutes()
-	RegisterTransactionRoutesPlaceholder()
+		RegisterTransactionRoutesPlaceholder()
 	RegisterCategoryRoutes()
 	RegisterTransactionRoutes()
 
