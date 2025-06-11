@@ -10,5 +10,4 @@ func RegisterTransactionRoutes() {
 	Private.GET("/user/transaction/list", transactionApi.GetList)
 	Private.POST("/user/transaction", transactionApi.CreateOne)
 	Private.GET("/user/transaction/statistic/month", transactionApi.GetMonthStatistic)
-	// 可继续补充其他交易相关接口
 }

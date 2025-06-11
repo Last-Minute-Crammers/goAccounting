@@ -40,16 +40,24 @@ type Transaction struct {
 }
 
 func (i *Info) CheckValid(db *gorm.DB) error {
-	log.Println("[model]: get into txModelCheckvalid")
+	log.Printf("[model]: 验证交易信息 - CategoryId: %d, IncomeExpense: %s", i.CategoryId, i.IncomeExpense)
+	
 	category, err := categoryModel.NewDao(db).SelectById(i.CategoryId)
 	if err != nil {
-		return err
+		log.Printf("[model]: 查询分类失败 - CategoryId: %d, Error: %v", i.CategoryId, err)
+		return errors.New("找不到指定的分类")
 	}
+	
+	log.Printf("[model]: 分类信息 - ID: %d, Name: %s, IncomeExpense: %s", category.ID, category.Name, category.IncomeExpense)
+	
 	if i.Amount <= 0 {
 		return errors.New("transaction CheckValid: amount must be positive")
 	}
+	
 	if i.IncomeExpense != category.IncomeExpense {
-		return errors.New("transaction CheckValid: IncomeExpense mismatch with category")
+		log.Printf("[model]: IncomeExpense不匹配 - 交易: %s, 分类: %s", i.IncomeExpense, category.IncomeExpense)
+		return errors.New("交易的收支类型与分类不匹配")
 	}
+	
 	return nil
 }

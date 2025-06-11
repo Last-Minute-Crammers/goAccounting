@@ -6,8 +6,8 @@ import (
 
 func RegisterCategoryRoutesV1() {
 	categoryApi := new(v1.CategoryApi)
-	Private.POST("/category", categoryApi.CreateCategory)
-	Private.PUT("/category/:id", categoryApi.UpdateCategory)
-	Private.DELETE("/category/:id", categoryApi.DeleteCategory)
-	Private.GET("/category/list", categoryApi.ListCategory)
+	Private.POST("/user/category", categoryApi.CreateCategory)
+	Private.PUT("/user/category/:id", categoryApi.UpdateCategory)
+	Private.DELETE("/user/category/:id", categoryApi.DeleteCategory)
+	Private.GET("/user/category/list", categoryApi.ListCategory)
 }

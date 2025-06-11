@@ -14,30 +14,37 @@ func init() {
 		panic(err)
 	}
 
-	initDefaultCategories()
+	// 不在这里创建默认分类，改为在用户注册时创建
 }
 
-// in fact, I don't wonna add Icon, I'm lazy to find icons
-func initDefaultCategories() {
+// CreateDefaultCategoriesForUser 为新用户创建默认分类
+func CreateDefaultCategoriesForUser(accountId uint) error {
+	// 检查用户是否已有分类
 	var count int64
-	db.InitDb.Model(&Category{}).Count(&count)
+	db.InitDb.Model(&Category{}).Where("account_id = ?", accountId).Count(&count)
 	if count > 0 {
-		return
+		return nil // 已有分类，不重复创建
 	}
 
+	// 为新用户创建默认分类
 	expenses := []Category{
-		{Name: "food", Icon: "food", IncomeExpense: constant.Expense},
-		{Name: "transportation", Icon: "transportation", IncomeExpense: constant.Expense},
-		{Name: "shop", Icon: "shop", IncomeExpense: constant.Expense},
-		{Name: "game", Icon: "game", IncomeExpense: constant.Expense},
+		{AccountID: accountId, Name: "餐饮", Icon: "food", IncomeExpense: constant.Expense},
+		{AccountID: accountId, Name: "购物", Icon: "shop", IncomeExpense: constant.Expense},
+		{AccountID: accountId, Name: "交通", Icon: "transportation", IncomeExpense: constant.Expense},
+		{AccountID: accountId, Name: "住房", Icon: "house", IncomeExpense: constant.Expense},
+		{AccountID: accountId, Name: "娱乐", Icon: "game", IncomeExpense: constant.Expense},
 	}
 
 	incomes := []Category{
-		{Name: "salary", Icon: "salary", IncomeExpense: constant.Income},
-		{Name: "bonus", Icon: "bonus", IncomeExpense: constant.Income},
-		{Name: "invest", Icon: "invest", IncomeExpense: constant.Income},
+		{AccountID: accountId, Name: "服游", Icon: "salary", IncomeExpense: constant.Income},
+		{AccountID: accountId, Name: "投资", Icon: "invest", IncomeExpense: constant.Income},
 	}
 
-	db.InitDb.Create(&expenses)
-	db.InitDb.Create(&incomes)
+	// 创建支出分类
+	if err := db.InitDb.Create(&expenses).Error; err != nil {
+		return err
+	}
+
+	// 创建收入分类
+	return db.InitDb.Create(&incomes).Error
 }

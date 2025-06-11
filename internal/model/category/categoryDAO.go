@@ -25,8 +25,8 @@ func (cd *CategoryDao) SelectById(id uint) (category Category, err error) {
 	return
 }
 
-func (cd *CategoryDao) SelectByName(accountId uint, name string) (category Category, err error) {
-	err = cd.db.Where("account_id = ? AND name = ?", accountId, name).First(&category).Error
+func (cd *CategoryDao) SelectByName(accountId uint, name string, incomeExpense constant.IncomeExpense) (category Category, err error) {
+	err = cd.db.Where("account_id = ? AND name = ? AND income_expense = ?", accountId, name, incomeExpense).First(&category).Error
 	return
 }
 
@@ -56,6 +56,7 @@ func (cd *CategoryDao) Update(categoryId uint, data CategoryUpdateData) error {
 }
 
 type CategoryCreateData struct {
+	AccountID     uint
 	Name          string
 	Icon          string
 	IncomeExpense constant.IncomeExpense
@@ -63,6 +64,7 @@ type CategoryCreateData struct {
 
 func (cd *CategoryDao) Create(data CategoryCreateData) (Category, error) {
 	category := Category{
+		AccountID:     data.AccountID,
 		Name:          data.Name,
 		Icon:          data.Icon,
 		IncomeExpense: data.IncomeExpense,
@@ -101,6 +103,7 @@ func (cd *CategoryDao) HardDelete(categoryId uint) error {
 
 // ListOptions 列表查询选项
 type ListOptions struct {
+	AccountID     *uint
 	IncomeExpense *constant.IncomeExpense
 	OrderBy       string // 排序字段，默认为 created_at
 	OrderDesc     bool   // 是否降序排列，默认为 true
@@ -110,6 +113,10 @@ type ListOptions struct {
 
 func (cd *CategoryDao) ListWithOptions(options ListOptions) (list []Category, err error) {
 	query := cd.db.Model(&Category{})
+
+	if options.AccountID != nil {
+		query = query.Where("account_id = ?", *options.AccountID)
+	}
 
 	if options.IncomeExpense != nil {
 		query = query.Where("income_expense = ?", *options.IncomeExpense)
@@ -138,8 +145,9 @@ func (cd *CategoryDao) ListWithOptions(options ListOptions) (list []Category, er
 	return list, err
 }
 
-func (cd *CategoryDao) List(ie *constant.IncomeExpense) (list []Category, err error) {
+func (cd *CategoryDao) List(accountId *uint, ie *constant.IncomeExpense) (list []Category, err error) {
 	options := ListOptions{
+		AccountID:     accountId,
 		IncomeExpense: ie,
 		OrderDesc:     true,
 		OrderBy:       "created_at",

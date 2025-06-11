@@ -21,7 +21,7 @@ func (c *CategoryApi) CreateCategory(ctx *gin.Context) {
 		response.FailToParameter(ctx, err)
 		return
 	}
-	category, err := categoryService.Create(req.Name, req.IncomeExpense)
+	category, err := categoryService.Create(req.Name, req.IncomeExpense, ctx)
 	if responseError(err, ctx) {
 		return
 	}

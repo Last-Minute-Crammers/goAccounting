@@ -10,12 +10,19 @@ import (
 
 type Category struct {
 	ID            uint                   `gorm:"primaryKey"`
-	IncomeExpense constant.IncomeExpense `gorm:"comment:'收支类型'"`
-	Name          string                 `gorm:"comment:'标签名';size:128;uniqueIndex"`
+	AccountID     uint                   `gorm:"comment:'账户ID';index;uniqueIndex:idx_category_unique,priority:1"`
+	IncomeExpense constant.IncomeExpense `gorm:"comment:'收支类型';uniqueIndex:idx_category_unique,priority:3"`
+	Name          string                 `gorm:"comment:'标签名';size:128;uniqueIndex:idx_category_unique,priority:2"`
 	Icon          string                 `gorm:"comment:'图标';size:64"`
 	CreatedAt     time.Time              `gorm:"type:TIMESTAMP"`
 	UpdatedAt     time.Time              `gorm:"type:TIMESTAMP"`
 	DeletedAt     gorm.DeletedAt         `gorm:"index;type:TIMESTAMP"`
+}
+
+// Add composite unique index
+func (c *Category) BeforeCreate(tx *gorm.DB) error {
+	// Create composite unique index: account_id + name + income_expense
+	return nil
 }
 
 func (c *Category) TableName() string {

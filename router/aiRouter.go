@@ -6,14 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 适配 Gin 的 HandlerFunc - 改为公开路由用于测试
+// HandlerFunc
 func RegisterAIRoutes() {
-	// 使用 Public 路由组，不需要 JWT 认证
+	// 语音处理接口，暂未接入大模型
 	Public.POST("/ai/voice", func(ctx *gin.Context) {
 		aiAPI.GinVoiceInputHandler(ctx)
 	})
+	// OCR 处理接口,暂未完全接入
 	Public.POST("/ai/ocr", func(ctx *gin.Context) {
 		aiAPI.GinOCRInputHandler(ctx)
 	})
+	// AI 聊天接口，接入大模型
 	Public.POST("/ai/chat", aiAPI.GinChatHandler)
 }
+

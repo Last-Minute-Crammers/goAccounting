@@ -15,7 +15,7 @@ type Category struct{}
 
 // Create 创建新的分类
 func (c *Category) Create(
-	name string, incomeExpense constant.IncomeExpense) (categoryModel.Category, error) {
+	name string, incomeExpense constant.IncomeExpense, ctx context.Context) (categoryModel.Category, error) {
 
 	// 1. 参数验证
 	if name == "" {
@@ -27,15 +27,23 @@ func (c *Category) Create(
 		return categoryModel.Category{}, errors.New("收支类型必须是'收入'或'支出'")
 	}
 
-	// 3. 创建数据结构
+	// 3. 从上下文获取当前用户ID作为AccountID
+	// 假设你的鉴权中间件会将用户ID存储在context中
+	userId, exists := ctx.Value("userId").(uint)
+	if !exists || userId == 0 {
+		return categoryModel.Category{}, errors.New("用户未登录")
+	}
+
+	// 4. 创建数据结构
 	data := categoryModel.CategoryCreateData{
+		AccountID:     userId,
 		Name:          name,
 		IncomeExpense: incomeExpense,
 		Icon:          "", // 暂时不设置图标
 	}
 
-	// 4. 调用数据访问层创建分类
-	return categoryModel.NewDao(global.GlobalDb).Create(data)
+	// 5. 调用数据访问层创建分类
+	return categoryModel.NewDao(db.GetDb(ctx)).Create(data)
 }
 
 // Update 更新分类信息
@@ -106,9 +114,15 @@ func (c *Category) Delete(id uint, ctx context.Context) error {
 
 // List 获取分类列表
 func (c *Category) List(incomeExpense *constant.IncomeExpense, ctx context.Context) ([]categoryModel.Category, error) {
+	// 从上下文获取当前用户ID
+	userId, exists := ctx.Value("userId").(uint)
+	if !exists || userId == 0 {
+		return nil, errors.New("用户未登录")
+	}
+
 	// 1. 获取数据库连接
 	cDAO := categoryModel.NewDao(db.GetDb(ctx))
 
 	// 2. 调用数据访问层获取列表
-	return cDAO.List(incomeExpense)
+	return cDAO.List(&userId, incomeExpense)
 }

@@ -95,7 +95,7 @@ func (s *ChatService) genSignature(appSecret, signingString string) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-// 按照Python示例生成认证头
+// 生成认证头
 func (s *ChatService) generateAuthHeaders(method, uri string, queryParams map[string]string) map[string]string {
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	nonce := s.genNonce(8)
