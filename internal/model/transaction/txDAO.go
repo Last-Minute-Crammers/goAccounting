@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"log"
 )
 
 type TransactionDao struct {
@@ -67,16 +68,28 @@ func (t *TransactionDao) getAmountCountStatistic(query *gorm.DB, ie constant.Inc
 func (t *TransactionDao) getIEStatisticByWhere(ie *constant.IncomeExpense, query *gorm.DB) (
 	result global.IEStatistic, err error,
 ) {
-	if ie.QueryIncome() {
+	// 如果ie为nil，查询收入和支出
+	if ie == nil {
 		result.Income, err = t.getAmountCountStatistic(query, constant.Income)
 		if err != nil {
 			return
 		}
-	}
-	if ie.QueryExpense() {
 		result.Expense, err = t.getAmountCountStatistic(query, constant.Expense)
 		if err != nil {
 			return
+		}
+	} else {
+		if ie.QueryIncome() {
+			result.Income, err = t.getAmountCountStatistic(query, constant.Income)
+			if err != nil {
+				return
+			}
+		}
+		if ie.QueryExpense() {
+			result.Expense, err = t.getAmountCountStatistic(query, constant.Expense)
+			if err != nil {
+				return
+			}
 		}
 	}
 	return
@@ -85,8 +98,11 @@ func (t *TransactionDao) getIEStatisticByWhere(ie *constant.IncomeExpense, query
 func (t *TransactionDao) GetIeStatisticByCondition(
 	ie *constant.IncomeExpense, condition StatisticCondition, extCond *ExtensionCondition,
 ) (result global.IEStatistic, err error) {
+	log.Printf("[txDAO]: GetIeStatisticByCondition - ie: %v, condition: %+v, extCond: %+v", ie, condition, extCond)
+	
 	if extCond.IsSet() {
 		// transaction table select
+		log.Printf("[txDAO]: Using transaction table query due to extension conditions")
 		query := t.db.Model(&Transaction{})
 		query = condition.ForeignKeyCondition.addConditionToQuery(query)
 		query, err = t.setTimeRangeForQuery(
@@ -99,10 +115,12 @@ func (t *TransactionDao) GetIeStatisticByCondition(
 		result, err = t.getIEStatisticByWhere(ie, query)
 	} else {
 		// statistic table select
+		log.Printf("[txDAO]: Using statistic table query")
 		result, err = NewStatisticDao(t.db).GetIeStatisticByCondition(ie, condition)
 	}
 	if err != nil {
 		err = errors.Wrap(err, "transactionDao.GetIeStatisticByCondition")
 	}
+	log.Printf("[txDAO]: Final result: %+v", result)
 	return
 }

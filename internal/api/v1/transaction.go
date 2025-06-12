@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"goAccounting/global/constant"
+	"goAccounting/global/db"
 	"goAccounting/internal/api/request"
 	"goAccounting/internal/api/response"
 	transactionModel "goAccounting/internal/model/transaction"
@@ -39,8 +41,9 @@ func (t *TransactionApi) GetOne(ctx *gin.Context) {
 //	@Tags		Transaction
 //	@Accept		json
 //	@Produce	json
+//	@Param		body		body		request.TransactionGetList	true	"query parameters"
 //	@Success	200			{object}	response.Data{Data=response.List[response.TransactionDetail]{}}
-//	@Router		/user/transaction/list [get]
+//	@Router		/user/transaction/list [post]
 func (t *TransactionApi) GetList(ctx *gin.Context) {
 	log.Println("[api]: get into GetList")
 	var requestData request.TransactionGetList
@@ -124,41 +127,72 @@ func (t *TransactionApi) CreateOne(ctx *gin.Context) {
 //	@Tags		Transaction
 //	@Accept		json
 //	@Produce	json
-//	@Param		data		body		request.TransactionMonthStatistic	true	"condition"
+//	@Param		body		body		request.TransactionMonthStatistic	true	"condition"
 //	@Success	200			{object}	response.Data{Data=response.List[response.TransactionStatistic]{}}
-//	@Router		/user/transaction/statistic/month [get]
+//	@Router		/user/transaction/statistic/month [post]
 func (t *TransactionApi) GetMonthStatistic(ctx *gin.Context) {
 	var requestData request.TransactionMonthStatistic
 	if err := ctx.ShouldBindJSON(&requestData); err != nil {
+		log.Printf("[api]: GetMonthStatistic bind error: %v", err)
 		response.FailToParameter(ctx, err)
 		return
 	}
+	
+	userId := contextFunc.GetUserId(ctx)
+	log.Printf("[api]: GetMonthStatistic, userId: %d, request: %+v", userId, requestData)
+	
 	if err := requestData.CheckTimeFrame(); err != nil {
 		response.FailToParameter(ctx, err)
 		return
 	}
 	requestData.SetLocal(time.Local)
-	// condition
-	statisticCondition, extCond := requestData.GetStatisticCondition(), requestData.GetExtensionCondition()
-	condition := statisticCondition
+	
+	// 获取条件
+	statisticCondition := requestData.GetStatisticCondition()
+	extCond := requestData.GetExtensionCondition()
+	
+	// 确保设置用户ID
+	statisticCondition.UserId = userId
+	
+	log.Printf("[api]: statisticCondition: %+v", statisticCondition)
+	log.Printf("[api]: extCond: %+v", extCond)
+	
 	months := timeTool.SplitMonths(statisticCondition.StartTime, statisticCondition.EndTime)
-	// select and process
+	log.Printf("[api]: split months: %v", months)
+	
+	// 如果没有指定IncomeExpense，使用nil表示查询both
+	ie := requestData.IncomeExpense
+	if ie == nil {
+		// 不设置ie，表示查询收入和支出
+		log.Printf("[api]: No incomeExpense specified, will query both income and expense")
+	}
+	
 	responseList := make([]response.TransactionStatistic, len(months))
-	dao := transactionModel.NewDao()
+	dao := transactionModel.NewDao(db.GetDb(ctx))
+	
 	for i := len(months) - 1; i >= 0; i-- {
-		condition.StartTime = months[i][0]
-		condition.EndTime = months[i][1]
+		// 为每个月设置时间条件
+		monthCondition := statisticCondition
+		monthCondition.StartTime = months[i][0]
+		monthCondition.EndTime = months[i][1]
+		
+		log.Printf("[api]: Processing month %d: %v to %v", i, monthCondition.StartTime, monthCondition.EndTime)
 
-		monthStatistic, err := dao.GetIeStatisticByCondition(requestData.IncomeExpense, condition, &extCond)
+		monthStatistic, err := dao.GetIeStatisticByCondition(ie, monthCondition, &extCond)
 		if responseError(err, ctx) {
 			return
 		}
+		
+		log.Printf("[api]: month %d statistic: %+v", i, monthStatistic)
+		
 		responseList[i] = response.TransactionStatistic{
 			IEStatistic: monthStatistic,
-			StartTime:   condition.StartTime,
-			EndTime:     condition.EndTime,
+			StartTime:   monthCondition.StartTime,
+			EndTime:     monthCondition.EndTime,
 		}
 	}
+	
+	log.Printf("[api]: final month response: %+v", responseList)
 	response.OkWithData(response.List[response.TransactionStatistic]{List: responseList}, ctx)
 }
 
@@ -171,6 +205,7 @@ func (t *TransactionApi) GetMonthStatistic(ctx *gin.Context) {
 //	@Router		/user/transaction/statistic/total [get]
 func (t *TransactionApi) GetTotalStatistic(ctx *gin.Context) {
 	userId := contextFunc.GetUserId(ctx)
+	log.Printf("[api]: GetTotalStatistic, userId is %d", userId)
 	
 	dao := transactionModel.NewStatisticDao()
 	totalStats, err := dao.GetTotalStatistics(userId)
@@ -178,13 +213,17 @@ func (t *TransactionApi) GetTotalStatistic(ctx *gin.Context) {
 		return
 	}
 	
+	log.Printf("[api]: totalStats from DB: %+v", totalStats)
+	
 	// Calculate total assets (income - expense) and convert to int
 	totalAssets := int(totalStats.Income.Amount - totalStats.Expense.Amount)
+	log.Printf("[api]: calculated totalAssets: %d", totalAssets)
 	
 	responseData := response.TransactionTotalStatistic{
 		IEStatistic: totalStats,
 		TotalAssets: totalAssets,
 	}
 	
+	log.Printf("[api]: final response data: %+v", responseData)
 	response.OkWithData(responseData, ctx)
 }

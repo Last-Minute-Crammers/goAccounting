@@ -73,16 +73,29 @@ func (s *StatisticDao) GetIeStatisticByCondition(ie *constant.IncomeExpense, con
 		return result, errors.New("wrong check categories")
 	}
 	query := condition.addConditionToQuery(s.db)
-	if ie.QueryIncome() {
+	
+	// 如果ie为nil，查询收入和支出
+	if ie == nil {
 		err = query.Table(condition.GetStatisticTableName(constant.Income)).Select("SUM(amount) as amount,SUM(count) as count").Scan(&result.Income).Error
 		if err != nil {
 			return
 		}
-	}
-	if ie.QueryExpense() {
 		err = query.Table(condition.GetStatisticTableName(constant.Expense)).Select("SUM(amount) as amount,SUM(count) as count").Scan(&result.Expense).Error
 		if err != nil {
 			return
+		}
+	} else {
+		if ie.QueryIncome() {
+			err = query.Table(condition.GetStatisticTableName(constant.Income)).Select("SUM(amount) as amount,SUM(count) as count").Scan(&result.Income).Error
+			if err != nil {
+				return
+			}
+		}
+		if ie.QueryExpense() {
+			err = query.Table(condition.GetStatisticTableName(constant.Expense)).Select("SUM(amount) as amount,SUM(count) as count").Scan(&result.Expense).Error
+			if err != nil {
+				return
+			}
 		}
 	}
 	return result, err
@@ -90,20 +103,30 @@ func (s *StatisticDao) GetIeStatisticByCondition(ie *constant.IncomeExpense, con
 
 // GetTotalStatistics gets total income and expense statistics from user registration
 func (s *StatisticDao) GetTotalStatistics(userId uint) (result global.IEStatistic, err error) {
-	// Get total income
+	log.Printf("[statisticDAO]: GetTotalStatistics for user %d", userId)
+	
+	// Get total income - 修正表名
 	err = s.db.Table("transaction_income_account_statistic").
 		Where("user_id = ?", userId).
 		Select("COALESCE(SUM(amount), 0) as amount, COALESCE(SUM(count), 0) as count").
 		Scan(&result.Income).Error
 	if err != nil {
+		log.Printf("[statisticDAO]: Error querying income: %v", err)
 		return
 	}
+	log.Printf("[statisticDAO]: Income result: %+v", result.Income)
 	
-	// Get total expense
+	// Get total expense - 修正表名  
 	err = s.db.Table("transaction_expense_account_statistic").
 		Where("user_id = ?", userId).
 		Select("COALESCE(SUM(amount), 0) as amount, COALESCE(SUM(count), 0) as count").
 		Scan(&result.Expense).Error
+	if err != nil {
+		log.Printf("[statisticDAO]: Error querying expense: %v", err)
+		return
+	}
+	log.Printf("[statisticDAO]: Expense result: %+v", result.Expense)
+	log.Printf("[statisticDAO]: Final total result: %+v", result)
 	
 	return result, err
 }
