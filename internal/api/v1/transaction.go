@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"goAccounting/global/constant"
 	"goAccounting/global/db"
 	"goAccounting/internal/api/request"
 	"goAccounting/internal/api/response"
