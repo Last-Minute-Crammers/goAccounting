@@ -44,9 +44,10 @@ func init() {
 	RegisterPublicRoutes()
 	RegisterAIRoutes() // AI routes now use Public group
 	RegisterUserRoutes()
-		RegisterTransactionRoutesPlaceholder()
+	RegisterTransactionRoutesPlaceholder()
 	RegisterCategoryRoutes()
 	RegisterTransactionRoutes()
+	RegisterVisualizationRoutes() // 新增可视化路由
 
 	fmt.Println("All routes registered successfully")
 }
