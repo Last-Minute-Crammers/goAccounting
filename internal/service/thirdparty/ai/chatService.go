@@ -3,19 +3,11 @@ package aiService
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"net/http"
-	"net/url"
-	"sort"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -55,81 +47,6 @@ type blueLMResponse struct {
 }
 
 type ChatService struct{}
-
-// 生成随机字符串
-func (s *ChatService) genNonce(length int) string {
-	chars := "abcdefghijklmnopqrstuvwxyz0123456789"
-	result := make([]byte, length)
-	for i := range result {
-		result[i] = chars[rand.Intn(len(chars))]
-	}
-	return string(result)
-}
-
-// 生成标准查询字符串
-func (s *ChatService) genCanonicalQueryString(params map[string]string) string {
-	if len(params) == 0 {
-		return ""
-	}
-
-	var keys []string
-	for k := range params {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	var parts []string
-	for _, k := range keys {
-		escapedKey := url.QueryEscape(k)
-		escapedValue := url.QueryEscape(params[k])
-		parts = append(parts, fmt.Sprintf("%s=%s", escapedKey, escapedValue))
-	}
-
-	return strings.Join(parts, "&")
-}
-
-// 生成HMAC-SHA256签名
-func (s *ChatService) genSignature(appSecret, signingString string) string {
-	h := hmac.New(sha256.New, []byte(appSecret))
-	h.Write([]byte(signingString))
-	return base64.StdEncoding.EncodeToString(h.Sum(nil))
-}
-
-// 生成认证头
-func (s *ChatService) generateAuthHeaders(method, uri string, queryParams map[string]string) map[string]string {
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-	nonce := s.genNonce(8)
-	canonicalQueryString := s.genCanonicalQueryString(queryParams)
-
-	signedHeadersString := fmt.Sprintf("x-ai-gateway-app-id:%s\nx-ai-gateway-timestamp:%s\nx-ai-gateway-nonce:%s",
-		blueLMAppID, timestamp, nonce)
-
-	signingString := fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s",
-		strings.ToUpper(method),
-		uri,
-		canonicalQueryString,
-		blueLMAppID,
-		timestamp,
-		signedHeadersString)
-
-	signature := s.genSignature(blueLMAppKey, signingString)
-
-	log.Printf("认证信息生成:")
-	log.Printf("  Timestamp: %s", timestamp)
-	log.Printf("  Nonce: %s", nonce)
-	log.Printf("  Canonical Query: %s", canonicalQueryString)
-	log.Printf("  Signed Headers: %s", signedHeadersString)
-	log.Printf("  Signing String: %s", signingString)
-	log.Printf("  Signature: %s", signature)
-
-	return map[string]string{
-		"X-AI-GATEWAY-APP-ID":         blueLMAppID,
-		"X-AI-GATEWAY-TIMESTAMP":      timestamp,
-		"X-AI-GATEWAY-NONCE":          nonce,
-		"X-AI-GATEWAY-SIGNED-HEADERS": "x-ai-gateway-app-id;x-ai-gateway-timestamp;x-ai-gateway-nonce",
-		"X-AI-GATEWAY-SIGNATURE":      signature,
-	}
-}
 
 func (s *ChatService) GetChatResponse(userInput string, ctx context.Context) (string, error) {
 	sessionId := uuid.New().String()
@@ -188,7 +105,7 @@ func (s *ChatService) GetChatResponse(userInput string, ctx context.Context) (st
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	// 按照Python示例生成认证头
-	authHeaders := s.generateAuthHeaders("POST", "/vivogpt/completions", queryParams)
+	authHeaders := GenerateAuthHeaders("POST", "/vivogpt/completions", queryParams, blueLMAppID, blueLMAppKey)
 	log.Printf("认证头信息:")
 	for key, value := range authHeaders {
 		log.Printf("  %s: %s", key, value)
