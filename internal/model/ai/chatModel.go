@@ -12,7 +12,6 @@ type ChatRecord struct {
 	UserId    uint           `gorm:"index"`
 	Input     string         `gorm:"type:text"`
 	Response  string         `gorm:"type:text"`
-	HistorySummary string    `gorm:"type:text"` // 整理后的对话历史
 	CreatedAt time.Time      `gorm:"type:TIMESTAMP"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
