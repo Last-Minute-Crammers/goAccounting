@@ -1,6 +1,9 @@
 package timeTool
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 func SplitMonths(startDate, endDate time.Time) [][2]time.Time {
 	var months [][2]time.Time
@@ -26,9 +29,57 @@ func SplitDays(startDate, endDate time.Time) []time.Time {
 	}
 	return days
 }
+
+func SplitYears(startDate, endDate time.Time) [][2]time.Time {
+	var years [][2]time.Time
+	current := startDate
+
+	for current.Before(endDate) { // 👈 改为 Before
+		yearEnd := GetLastSecondOfYear(current)
+		if yearEnd.After(endDate) {
+			yearEnd = endDate
+		}
+		years = append(years, [2]time.Time{current, yearEnd})
+		current = yearEnd.Add(time.Second)
+
+		// 添加安全检查
+		if len(years) > 100 { // 假设最多100年
+			log.Printf("SplitYears: 可能出现死循环，停止分割")
+			break
+		}
+	}
+
+	return years
+}
+func SplitWeeks(startDate, endDate time.Time) [][2]time.Time {
+	var weeks [][2]time.Time
+	current := startDate
+
+	for current.Before(endDate) { // 👈 改为 Before 而不是 Equal
+		weekEnd := GetLastSecondOfWeek(current)
+		if weekEnd.After(endDate) {
+			weekEnd = endDate
+		}
+		weeks = append(weeks, [2]time.Time{current, weekEnd})
+		current = weekEnd.Add(time.Second)
+
+		// 添加安全检查，防止死循环
+		if len(weeks) > 1000 { // 假设最多1000周
+			log.Printf("SplitWeeks: 可能出现死循环，停止分割")
+			break
+		}
+	}
+	return weeks
+}
+
 func GetFirstSecondOfDay(date time.Time) time.Time {
 	year, month, day := date.Date()
 	return time.Date(year, month, day, 0, 0, 0, 0, date.Location())
+}
+
+func GetLastSecondOfDay(date time.Time) time.Time {
+	year, month, day := date.Date()
+	return time.Date(year, month, day, 23, 59, 59, 999999999, date.Location())
 }
 
 func GetFirstSecondOfMonth(date time.Time) time.Time {
