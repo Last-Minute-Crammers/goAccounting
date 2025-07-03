@@ -95,6 +95,7 @@ type TransactionCategoryAmountRank struct {
 }
 
 type TransactionAmountRank struct {
+	UserId        uint
 	IncomeExpense constant.IncomeExpense `binding:"required,oneof=income expense"`
 	TimeFrame
 }

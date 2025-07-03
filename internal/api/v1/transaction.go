@@ -6,7 +6,10 @@ import (
 	"goAccounting/global/db"
 	"goAccounting/internal/api/request"
 	"goAccounting/internal/api/response"
+	categoryModel "goAccounting/internal/model/category"
 	transactionModel "goAccounting/internal/model/transaction"
+	userModel "goAccounting/internal/model/user"
+	"goAccounting/util/dataTool"
 	"goAccounting/util/timeTool"
 	"log"
 	"time"
@@ -480,4 +483,129 @@ func (t *TransactionApi) GetTotalStatistic(ctx *gin.Context) {
 
 	log.Printf("[api]: final response data: %+v", responseData)
 	response.OkWithData(responseData, ctx)
+}
+
+// GetCategoryAmountRank
+//
+//	@Tags		Transaction
+//	@Accept		json
+//	@Produce	json
+//	@Param		accountId	path		int										true	"Account ID"
+//	@Param		data		body		request.TransactionCategoryAmountRank	true	"condition"
+//	@Success	200			{object}	response.Data{Data=response.List[response.TransactionCategoryAmountRank]{}}
+//	@Router		/account/{accountId}/transaction/category/amount/rank [get]
+func (t *TransactionApi) GetCategoryAmountRank(ctx *gin.Context) {
+	log.Println("[api]: get into func GetCategoryAmountRank")
+	var requestData request.TransactionCategoryAmountRank
+	if err := ctx.ShouldBindJSON(&requestData); err != nil {
+		response.FailToParameter(ctx, err)
+		return
+	}
+	if err := requestData.CheckTimeFrame(); responseError(err, ctx) {
+		return
+	}
+	UserId := contextFunc.GetUserId(ctx)
+	log.Printf("[GetCategoryAmountRank]: userId = %d\n", UserId)
+	// fetch ranking List
+	var startTime, endTime = requestData.FormatDayTime()
+	condition := transactionModel.CategoryAmountRankCondition{
+		User:      userModel.User{ID: UserId},
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+	var err error
+	var rankingList dataTool.Slice[uint, transactionModel.CategoryAmountRank]
+	rankingList, err = transactionModel.NewStatisticDao().GetCategoryAmountRank(
+		requestData.IncomeExpense, condition, requestData.Limit,
+	)
+
+	if responseError(err, ctx) {
+		return
+	}
+	categoryIds := rankingList.ExtractValues(
+		func(rank transactionModel.CategoryAmountRank) uint {
+			return rank.CategoryId
+		},
+	)
+	// fetch category
+	var categoryList dataTool.Slice[uint, categoryModel.Category]
+	err = db.Db.Where("id IN (?)", categoryIds).Find(&categoryList).Error
+	if responseError(err, ctx) {
+		return
+	}
+	categoryMap := categoryList.ToMap(
+		func(category categoryModel.Category) uint {
+			return category.ID
+		},
+	)
+	// response
+	responseData := make([]response.TransactionCategoryAmountRank, len(rankingList), len(rankingList))
+	for i, rank := range rankingList {
+		responseData[i].Amount = rank.Amount
+		responseData[i].Count = rank.Count
+		err = responseData[i].Category.SetData(categoryMap[rank.CategoryId])
+		if responseError(err, ctx) {
+			return
+		}
+	}
+
+	categoryList = []categoryModel.Category{}
+	query := db.Db.Where("user_id = ?", UserId)
+	query = query.Where("income_expense = ?", requestData.IncomeExpense)
+	if len(categoryIds) > 0 {
+		query = query.Where("id NOT IN (?)", categoryIds)
+	}
+	err = query.Find(&categoryList).Error
+	if responseError(err, ctx) {
+		return
+	}
+	for _, category := range categoryList {
+		responseCategory := response.TransactionCategoryAmountRank{}
+		err = responseCategory.Category.SetData(category)
+		if responseError(err, ctx) {
+			return
+		}
+		responseData = append(responseData, responseCategory)
+	}
+	response.OkWithData(response.List[response.TransactionCategoryAmountRank]{List: responseData}, ctx)
+}
+
+// GetAmountRank
+//
+//	@Tags		Transaction
+//	@Accept		json
+//	@Produce	json
+//	@Param		accountId	path		int								true	"Account ID"
+//	@Param		data		body		request.TransactionAmountRank	true	"condition"
+//	@Success	200			{object}	response.Data{Data=response.List[response.TransactionDetailList]{}}
+//	@Router		/account/{accountId}/transaction/amount/rank [get]
+func (t *TransactionApi) GetAmountRank(ctx *gin.Context) {
+	log.Println("[api]: get into func GetAmountRank")
+	var requestData request.TransactionAmountRank
+	if err := ctx.ShouldBindJSON(&requestData); err != nil {
+		response.FailToParameter(ctx, err)
+		return
+	}
+	userId := contextFunc.GetUserId(ctx)
+	log.Printf("[GetAmountRank]: userId = %d\n", userId)
+	if err := requestData.CheckTimeFrame(); err != nil {
+		response.FailToParameter(ctx, err)
+		return
+	}
+	// fetch
+	timeCond := transactionModel.NewTimeCondition()
+	timeCond.SetTradeTimes(requestData.StartTime, requestData.EndTime)
+	rankingList, err := transactionModel.NewDao().GetAmountRank(
+		userId, requestData.IncomeExpense, *timeCond,
+	)
+	if responseError(err, ctx) {
+		return
+	}
+	// response
+	var responseList response.TransactionDetailList
+	err = responseList.SetData(rankingList)
+	if responseError(err, ctx) {
+		return
+	}
+	response.OkWithData(response.List[response.TransactionDetail]{List: responseList}, ctx)
 }

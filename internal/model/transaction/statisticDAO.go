@@ -73,7 +73,7 @@ func (s *StatisticDao) GetIeStatisticByCondition(ie *constant.IncomeExpense, con
 		return result, errors.New("wrong check categories")
 	}
 	query := condition.addConditionToQuery(s.db)
-	
+
 	// 如果ie为nil，查询收入和支出
 	if ie == nil {
 		err = query.Table(condition.GetStatisticTableName(constant.Income)).Select("SUM(amount) as amount,SUM(count) as count").Scan(&result.Income).Error
@@ -104,7 +104,7 @@ func (s *StatisticDao) GetIeStatisticByCondition(ie *constant.IncomeExpense, con
 // GetTotalStatistics gets total income and expense statistics from user registration
 func (s *StatisticDao) GetTotalStatistics(userId uint) (result global.IEStatistic, err error) {
 	log.Printf("[statisticDAO]: GetTotalStatistics for user %d", userId)
-	
+
 	// Get total income - 修正表名
 	err = s.db.Table("transaction_income_account_statistic").
 		Where("user_id = ?", userId).
@@ -115,8 +115,8 @@ func (s *StatisticDao) GetTotalStatistics(userId uint) (result global.IEStatisti
 		return
 	}
 	log.Printf("[statisticDAO]: Income result: %+v", result.Income)
-	
-	// Get total expense - 修正表名  
+
+	// Get total expense - 修正表名
 	err = s.db.Table("transaction_expense_account_statistic").
 		Where("user_id = ?", userId).
 		Select("COALESCE(SUM(amount), 0) as amount, COALESCE(SUM(count), 0) as count").
@@ -127,7 +127,7 @@ func (s *StatisticDao) GetTotalStatistics(userId uint) (result global.IEStatisti
 	}
 	log.Printf("[statisticDAO]: Expense result: %+v", result.Expense)
 	log.Printf("[statisticDAO]: Final total result: %+v", result)
-	
+
 	return result, err
 }
 
@@ -155,7 +155,7 @@ func (s *StatisticDao) GetCategoryAmountRank(
 ) (result []CategoryAmountRank, err error) {
 	condition.Local()
 	query := s.db.Where("user_id = ?", condition.User.ID)
-	query = query.Where("data BETWEEN ? AND ?", condition.StartTime, condition.EndTime)
+	query = query.Where("date BETWEEN ? AND ?", condition.StartTime, condition.EndTime)
 	// group means group :)
 	query = query.Select("SUM(amount) as Amount,SUM(count) as Count,category_id").Group("category_id")
 	if limit != nil {

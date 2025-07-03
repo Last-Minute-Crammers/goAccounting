@@ -26,7 +26,7 @@ func (cd *CategoryDao) SelectById(id uint) (category Category, err error) {
 }
 
 func (cd *CategoryDao) SelectByName(accountId uint, name string, incomeExpense constant.IncomeExpense) (category Category, err error) {
-	err = cd.db.Where("account_id = ? AND name = ? AND income_expense = ?", accountId, name, incomeExpense).First(&category).Error
+	err = cd.db.Where("user_id = ? AND name = ? AND income_expense = ?", accountId, name, incomeExpense).First(&category).Error
 	return
 }
 
@@ -64,7 +64,7 @@ type CategoryCreateData struct {
 
 func (cd *CategoryDao) Create(data CategoryCreateData) (Category, error) {
 	category := Category{
-		AccountID:     data.AccountID,
+		UserID:        data.AccountID,
 		Name:          data.Name,
 		Icon:          data.Icon,
 		IncomeExpense: data.IncomeExpense,
@@ -115,7 +115,7 @@ func (cd *CategoryDao) ListWithOptions(options ListOptions) (list []Category, er
 	query := cd.db.Model(&Category{})
 
 	if options.AccountID != nil {
-		query = query.Where("account_id = ?", *options.AccountID)
+		query = query.Where("user_id = ?", *options.AccountID)
 	}
 
 	if options.IncomeExpense != nil {

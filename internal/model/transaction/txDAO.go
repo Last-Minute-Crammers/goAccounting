@@ -6,9 +6,10 @@ import (
 	"goAccounting/util/timeTool"
 	"time"
 
+	"log"
+
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"log"
 )
 
 type TransactionDao struct {
@@ -99,7 +100,7 @@ func (t *TransactionDao) GetIeStatisticByCondition(
 	ie *constant.IncomeExpense, condition StatisticCondition, extCond *ExtensionCondition,
 ) (result global.IEStatistic, err error) {
 	log.Printf("[txDAO]: GetIeStatisticByCondition - ie: %v, condition: %+v, extCond: %+v", ie, condition, extCond)
-	
+
 	if extCond.IsSet() {
 		// transaction table select
 		log.Printf("[txDAO]: Using transaction table query due to extension conditions")
@@ -123,4 +124,13 @@ func (t *TransactionDao) GetIeStatisticByCondition(
 	}
 	log.Printf("[txDAO]: Final result: %+v", result)
 	return
+}
+
+func (t *TransactionDao) GetAmountRank(
+	userId uint, ie constant.IncomeExpense, timeCond TimeCondition,
+) (result []Transaction, err error) {
+	limit := 10
+	query := timeCond.addConditionToQuery(t.db)
+	query = query.Where("user_id = ?", userId).Where("income_expense = ?", ie)
+	return result, query.Limit(limit).Order("amount DESC").Find(&result).Error
 }

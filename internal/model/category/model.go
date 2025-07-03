@@ -10,7 +10,7 @@ import (
 
 type Category struct {
 	ID            uint                   `gorm:"primaryKey"`
-	AccountID     uint                   `gorm:"comment:'账户ID';index;uniqueIndex:idx_category_unique,priority:1"`
+	UserID        uint                   `gorm:"comment:'账户ID';index;uniqueIndex:idx_category_unique,priority:1"`
 	IncomeExpense constant.IncomeExpense `gorm:"comment:'收支类型';uniqueIndex:idx_category_unique,priority:3"`
 	Name          string                 `gorm:"comment:'标签名';size:128;uniqueIndex:idx_category_unique,priority:2"`
 	Icon          string                 `gorm:"comment:'图标';size:64"`

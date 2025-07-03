@@ -22,7 +22,7 @@ func init() {
 func initDefaultCategoriesForUser1() {
 	// 先清理无效的旧数据（account_id 为 NULL 的记录）
 	db.InitDb.Where("account_id IS NULL").Delete(&Category{})
-	
+
 	// 检查是否已有数据
 	var count int64
 	db.InitDb.Model(&Category{}).Where("account_id = ?", 1).Count(&count)
@@ -45,16 +45,16 @@ func CreateDefaultCategoriesForUser(accountId uint) error {
 
 	// 为新用户创建默认分类
 	expenses := []Category{
-		{AccountID: accountId, Name: "餐饮", Icon: "food", IncomeExpense: constant.Expense},
-		{AccountID: accountId, Name: "购物", Icon: "shop", IncomeExpense: constant.Expense},
-		{AccountID: accountId, Name: "交通", Icon: "transportation", IncomeExpense: constant.Expense},
-		{AccountID: accountId, Name: "住房", Icon: "house", IncomeExpense: constant.Expense},
-		{AccountID: accountId, Name: "娱乐", Icon: "game", IncomeExpense: constant.Expense},
+		{UserID: accountId, Name: "餐饮", Icon: "food", IncomeExpense: constant.Expense},
+		{UserID: accountId, Name: "购物", Icon: "shop", IncomeExpense: constant.Expense},
+		{UserID: accountId, Name: "交通", Icon: "transportation", IncomeExpense: constant.Expense},
+		{UserID: accountId, Name: "住房", Icon: "house", IncomeExpense: constant.Expense},
+		{UserID: accountId, Name: "娱乐", Icon: "game", IncomeExpense: constant.Expense},
 	}
 
 	incomes := []Category{
-		{AccountID: accountId, Name: "服游", Icon: "salary", IncomeExpense: constant.Income},
-		{AccountID: accountId, Name: "投资", Icon: "invest", IncomeExpense: constant.Income},
+		{UserID: accountId, Name: "服游", Icon: "salary", IncomeExpense: constant.Income},
+		{UserID: accountId, Name: "投资", Icon: "invest", IncomeExpense: constant.Income},
 	}
 
 	// 创建支出分类
