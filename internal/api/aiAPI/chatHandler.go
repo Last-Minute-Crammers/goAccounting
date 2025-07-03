@@ -8,13 +8,16 @@ import (
 	aiService "goAccounting/internal/service/thirdparty/ai"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	contextFunc "goAccounting/internal/api/util"
+	aiModel "goAccounting/internal/model/ai"
 )
 
 type ChatRequest struct {
-	Message string `json:"message" binding:"required"`
+	Message   string `json:"message" binding:"required"`
+	SessionId string `json:"sessionId,omitempty"`
 }
 
 type ChatResponse struct {
@@ -60,7 +63,13 @@ func GinChatHandler(ctx *gin.Context) {
 	// 获取当前用户ID
 	userId := contextFunc.ContextFunc.GetUserId(ctx)
 	chatService := &aiService.ChatService{}
-	responseText, err := chatService.GetChatResponseWithUser(req.Message, userId, ctx.Request.Context())
+	var responseText string
+	var err error
+	if req.SessionId != "" {
+		responseText, err = chatService.ContinueSession(req.Message, userId, req.SessionId, ctx.Request.Context())
+	} else {
+		responseText, err = chatService.GetChatResponseWithUser(req.Message, userId, ctx.Request.Context())
+	}
 	if err != nil {
 		log.Printf("AI对话失败: %v", err)
 		ctx.JSON(http.StatusInternalServerError, ChatResponse{
@@ -89,4 +98,70 @@ func GinChatHandler(ctx *gin.Context) {
 		Success: true,
 		Data:    responseText,
 	})
+}
+
+// 聊天历史记录请求
+// GET /user/ai/chat/history?offset=0&limit=20
+func GinChatHistoryHandler(ctx *gin.Context) {
+	userId := contextFunc.ContextFunc.GetUserId(ctx)
+	offset := 0
+	limit := 20
+	if v := ctx.Query("offset"); v != "" {
+		offsetInt, err := strconv.Atoi(v)
+		if err == nil {
+			offset = offsetInt
+		}
+	}
+	if v := ctx.Query("limit"); v != "" {
+		limitInt, err := strconv.Atoi(v)
+		if err == nil {
+			limit = limitInt
+		}
+	}
+	chatService := &aiService.ChatService{}
+	history, err := chatService.GetChatHistory(userId, offset, limit, ctx.Request.Context())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "获取历史失败: " + err.Error()})
+		return
+	}
+	// 分组：每个sessionId只取最早一条（即每个会话的第一个问题）
+	sessionMap := make(map[string]aiModel.ChatRecord)
+	for i := len(history) - 1; i >= 0; i-- { // 倒序，保证最早的在后面覆盖
+		record := history[i]
+		sessionMap[record.SessionId] = record
+	}
+	var sessions []gin.H
+	for _, record := range sessionMap {
+		sessions = append(sessions, gin.H{
+			"sessionId":     record.SessionId,
+			"firstQuestion": record.Input,
+			"createdAt":     record.CreatedAt,
+		})
+	}
+	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": sessions})
+}
+
+// 获取指定会话的全部聊天记录
+// GET /user/ai/chat/session?sessionId=xxx
+func GinChatSessionDetailHandler(ctx *gin.Context) {
+	userId := contextFunc.ContextFunc.GetUserId(ctx)
+	sessionId := ctx.Query("sessionId")
+	if sessionId == "" {
+		ctx.JSON(400, gin.H{"success": false, "error": "缺少sessionId参数"})
+		return
+	}
+	chatService := &aiService.ChatService{}
+	records, err := chatService.GetSessionHistory(sessionId, 100, ctx.Request.Context())
+	if err != nil {
+		ctx.JSON(500, gin.H{"success": false, "error": "获取会话详情失败: " + err.Error()})
+		return
+	}
+	// 只返回属于当前用户的消息
+	var filtered []aiModel.ChatRecord
+	for _, r := range records {
+		if r.UserId == userId || r.UserId == 0 {
+			filtered = append(filtered, r)
+		}
+	}
+	ctx.JSON(200, gin.H{"success": true, "data": filtered})
 }

@@ -18,5 +18,9 @@ func RegisterAIRoutes() {
 	})
 	// AI 聊天接口，迁移到私人路由，需要认证
 	Private.POST("/user/ai/chat", aiAPI.GinChatHandler)
+	// AI 聊天历史记录接口
+	Private.GET("/user/ai/chat/history", aiAPI.GinChatHistoryHandler)
+	// AI 聊天会话详情接口
+	Private.GET("/user/ai/chat/session", aiAPI.GinChatSessionDetailHandler)
 }
 
