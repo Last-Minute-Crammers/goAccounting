@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"time"
 
+	"goAccounting/global/db"
+	aiModel "goAccounting/internal/model/ai"
 	"github.com/google/uuid"
 )
 
@@ -48,15 +50,64 @@ type blueLMResponse struct {
 
 type ChatService struct{}
 
+// GetChatResponse 获取AI聊天响应并保存记录
 func (s *ChatService) GetChatResponse(userInput string, ctx context.Context) (string, error) {
-	sessionId := uuid.New().String()
+	return s.GetChatResponseWithUser(userInput, 0, ctx) // 默认用户ID为0
+}
+
+// GetChatResponseWithUser 获取AI聊天响应并保存记录（带用户ID）
+func (s *ChatService) GetChatResponseWithUser(userInput string, userId uint, ctx context.Context) (string, error) {
+	return s.GetChatResponseWithSession(userInput, userId, "", ctx) // 创建新会话
+}
+
+// GetChatResponseWithSession 获取AI聊天响应并保存记录（指定会话ID）
+func (s *ChatService) GetChatResponseWithSession(userInput string, userId uint, sessionId string, ctx context.Context) (string, error) {
+	// 如果没有提供会话ID，创建新会话
+	if sessionId == "" {
+		sessionId = uuid.New().String()
+	}
 	requestId := uuid.New().String()
 
 	log.Printf("=== 开始AI对话请求 ===")
 	log.Printf("RequestID: %s", requestId)
 	log.Printf("SessionID: %s", sessionId)
+	log.Printf("UserID: %d", userId)
 	log.Printf("用户输入: %s", userInput)
 
+	// 创建聊天记录，在服务层完全控制ID
+	chatRecord := &aiModel.ChatRecord{
+		SessionId: sessionId,
+		RequestId: requestId,
+		UserId:    userId,
+		Input:     userInput,
+		Response:  "", // 先创建记录，响应后更新
+	}
+
+	// 获取AI响应
+	response, err := s.callBlueLMAPI(userInput, sessionId, requestId, ctx)
+	if err != nil {
+		log.Printf("AI API调用失败: %v", err)
+		// 即使API调用失败，也保存记录，标记错误
+		chatRecord.Response = fmt.Sprintf("API调用失败: %v", err)
+		s.saveChatRecord(chatRecord, ctx)
+		return "", err
+	}
+
+	// 更新响应内容
+	chatRecord.Response = response
+
+	// 保存聊天记录到数据库
+	if err := s.saveChatRecord(chatRecord, ctx); err != nil {
+		log.Printf("保存聊天记录失败: %v", err)
+		// 不影响主流程，继续返回响应
+	}
+
+	log.Printf("=== AI对话成功完成 ===")
+	return response, nil
+}
+
+// callBlueLMAPI 调用蓝心大模型API
+func (s *ChatService) callBlueLMAPI(userInput, sessionId, requestId string, ctx context.Context) (string, error) {
 	// 定义系统提示词
 	systemPrompt := "你的中文名字叫理财小汪，你是智能理财宠物，对用户的称呼是主人。你有着丰富的理财知识，活泼可爱，认真可靠，你需要协助用户进行个人理财规划。当回复问题时需要回复你的名字时，中文名必须回复理财小汪，此外回复和你的名字相关的问题时，也需要给出和你的名字对应的合理回复。"
 
@@ -112,16 +163,6 @@ func (s *ChatService) GetChatResponse(userInput string, ctx context.Context) (st
 		httpReq.Header.Set(key, value)
 	}
 
-	// 打印完整请求信息
-	log.Printf("完整请求头:")
-	for key, values := range httpReq.Header {
-		for _, value := range values {
-			log.Printf("  %s: %s", key, value)
-		}
-	}
-
-	log.Printf("最终请求URL: %s", httpReq.URL.String())
-
 	client := &http.Client{Timeout: 30 * time.Second}
 	log.Printf("发送HTTP请求到蓝心大模型API...")
 	startTime := time.Now()
@@ -135,15 +176,6 @@ func (s *ChatService) GetChatResponse(userInput string, ctx context.Context) (st
 	duration := time.Since(startTime)
 	log.Printf("HTTP请求完成，耗时: %v", duration)
 	log.Printf("HTTP响应状态码: %d", resp.StatusCode)
-	log.Printf("HTTP响应状态: %s", resp.Status)
-
-	// 打印响应头
-	log.Printf("响应头:")
-	for key, values := range resp.Header {
-		for _, value := range values {
-			log.Printf("  %s: %s", key, value)
-		}
-	}
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -166,12 +198,7 @@ func (s *ChatService) GetChatResponse(userInput string, ctx context.Context) (st
 	log.Printf("=== API响应解析结果 ===")
 	log.Printf("Code: %d", apiResp.Code)
 	log.Printf("Msg: %s", apiResp.Msg)
-	log.Printf("SessionId: %s", apiResp.Data.SessionId)
-	log.Printf("RequestId: %s", apiResp.Data.RequestId)
 	log.Printf("Content: %s", apiResp.Data.Content)
-	log.Printf("Content长度: %d", len(apiResp.Data.Content))
-	log.Printf("FinishReason: %s", apiResp.Data.FinishReason)
-	log.Printf("Usage: %+v", apiResp.Data.Usage)
 
 	if apiResp.Code != 0 {
 		log.Printf("API返回错误码: %d, 错误信息: %s", apiResp.Code, apiResp.Msg)
@@ -184,7 +211,38 @@ func (s *ChatService) GetChatResponse(userInput string, ctx context.Context) (st
 		return "", nil
 	}
 
-	log.Printf("=== AI对话成功 ===")
-	log.Printf("返回内容长度: %d 字符", len(apiResp.Data.Content))
 	return apiResp.Data.Content, nil
+}
+
+// saveChatRecord 保存聊天记录到数据库
+func (s *ChatService) saveChatRecord(record *aiModel.ChatRecord, ctx context.Context) error {
+	dao := aiModel.NewChatDAO(db.GetDb(ctx))
+	if err := dao.Create(record); err != nil {
+		log.Printf("保存聊天记录失败: %v", err)
+		return err
+	}
+	log.Printf("聊天记录保存成功 - RequestID: %s", record.RequestId)
+	return nil
+}
+
+// GetChatHistory 获取用户聊天历史
+func (s *ChatService) GetChatHistory(userId uint, offset, limit int, ctx context.Context) ([]aiModel.ChatRecord, error) {
+	dao := aiModel.NewChatDAO(db.GetDb(ctx))
+	return dao.GetByUserId(userId, offset, limit)
+}
+
+// GetSessionHistory 获取指定会话的聊天历史
+func (s *ChatService) GetSessionHistory(sessionId string, limit int, ctx context.Context) ([]aiModel.ChatRecord, error) {
+	dao := aiModel.NewChatDAO(db.GetDb(ctx))
+	return dao.GetBySessionId(sessionId, limit)
+}
+
+// CreateNewSession 创建新的会话ID
+func (s *ChatService) CreateNewSession() string {
+	return uuid.New().String()
+}
+
+// ContinueSession 继续现有会话
+func (s *ChatService) ContinueSession(userInput string, userId uint, sessionId string, ctx context.Context) (string, error) {
+	return s.GetChatResponseWithSession(userInput, userId, sessionId, ctx)
 }

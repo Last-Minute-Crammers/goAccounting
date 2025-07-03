@@ -13,6 +13,13 @@ type ServiceGroup struct {
 	PetService    *PetService
 }
 
+// Group AI服务组，类似transaction的Group结构
+type Group struct {
+	ChatService
+}
+
+var GroupApp = new(Group)
+
 func NewServiceGroup() *ServiceGroup {
 	return &ServiceGroup{
 		VoiceService:  &VoiceService{},
