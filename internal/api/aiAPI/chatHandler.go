@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	contextFunc "goAccounting/internal/api/util"
 )
 
 type ChatRequest struct {
@@ -56,8 +57,10 @@ func GinChatHandler(ctx *gin.Context) {
 
 	log.Printf("收到AI对话请求: %s", req.Message)
 
+	// 获取当前用户ID
+	userId := contextFunc.ContextFunc.GetUserId(ctx)
 	chatService := &aiService.ChatService{}
-	responseText, err := chatService.GetChatResponse(req.Message, ctx.Request.Context())
+	responseText, err := chatService.GetChatResponseWithUser(req.Message, userId, ctx.Request.Context())
 	if err != nil {
 		log.Printf("AI对话失败: %v", err)
 		ctx.JSON(http.StatusInternalServerError, ChatResponse{
