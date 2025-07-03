@@ -74,17 +74,34 @@ func (s *ChatService) GetChatResponseWithSession(userInput string, userId uint, 
 	log.Printf("UserID: %d", userId)
 	log.Printf("用户输入: %s", userInput)
 
+	// 获取用户理财统计数据（示例，实际可根据业务调整）
+	financialData := ""
+	// TODO: 调用statisticService获取用户理财统计数据，拼接为字符串
+	// 例如: financialData = GetUserFinancialSummary(userId, ctx)
+
+	// 获取整理后的对话历史
+	historySummary := ""
+	records, err := s.GetSessionHistory(sessionId, 1, ctx) // 获取上一轮对话
+	if err == nil && len(records) > 0 {
+		historySummary = records[len(records)-1].HistorySummary
+	}
+
+	// 动态生成prompt
+	systemPrompt := "你的中文名字叫理财小汪，你是智能理财宠物，对用户的称呼是主人。你有着丰富的理财知识，活泼可爱，认真可靠，你需要协助用户进行个人理财规划。当回复问题时需要回复你的名字时，中文名必须回复理财小汪，此外回复和你的名字相关的问题时，也需要给出和你的名字对应的合理回复。"
+	fullPrompt := fmt.Sprintf("%s\n\n用户的理财数据:\n%s\n\n对话历史:\n%s\n\n用户提问:\n%s", systemPrompt, financialData, historySummary, userInput)
+
 	// 创建聊天记录，在服务层完全控制ID
 	chatRecord := &aiModel.ChatRecord{
-		SessionId: sessionId,
-		RequestId: requestId,
-		UserId:    userId,
-		Input:     userInput,
-		Response:  "", // 先创建记录，响应后更新
+		SessionId:      sessionId,
+		RequestId:      requestId,
+		UserId:         userId,
+		Input:          userInput,
+		Response:       "", // 先创建记录，响应后更新
+		HistorySummary: historySummary, // 保存整理后的对话历史
 	}
 
 	// 获取AI响应
-	response, err := s.callBlueLMAPI(userInput, sessionId, requestId, ctx)
+	response, err := s.callBlueLMAPI(fullPrompt, sessionId, requestId, ctx)
 	if err != nil {
 		log.Printf("AI API调用失败: %v", err)
 		// 即使API调用失败，也保存记录，标记错误
@@ -95,6 +112,9 @@ func (s *ChatService) GetChatResponseWithSession(userInput string, userId uint, 
 
 	// 更新响应内容
 	chatRecord.Response = response
+
+	// TODO: 这里可以调用大模型对本轮对话进行总结，更新HistorySummary
+	// chatRecord.HistorySummary = UpdateHistorySummary(historySummary, userInput, response)
 
 	// 保存聊天记录到数据库
 	if err := s.saveChatRecord(chatRecord, ctx); err != nil {
