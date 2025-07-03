@@ -22,11 +22,11 @@ const (
 )
 
 type Info struct {
-	UserId, AccountId, CategoryId uint
-	IncomeExpense                 constant.IncomeExpense
-	Amount                        int
-	Remark                        string
-	TradeTime                     time.Time `gorm:"type:TIMESTAMP"`
+	UserId, CategoryId uint
+	IncomeExpense      constant.IncomeExpense
+	Amount             int
+	Remark             string
+	TradeTime          time.Time `gorm:"type:TIMESTAMP"`
 }
 
 type Transaction struct {
@@ -41,23 +41,23 @@ type Transaction struct {
 
 func (i *Info) CheckValid(db *gorm.DB) error {
 	log.Printf("[model]: 验证交易信息 - CategoryId: %d, IncomeExpense: %s", i.CategoryId, i.IncomeExpense)
-	
+
 	category, err := categoryModel.NewDao(db).SelectById(i.CategoryId)
 	if err != nil {
 		log.Printf("[model]: 查询分类失败 - CategoryId: %d, Error: %v", i.CategoryId, err)
 		return errors.New("找不到指定的分类")
 	}
-	
+
 	log.Printf("[model]: 分类信息 - ID: %d, Name: %s, IncomeExpense: %s", category.ID, category.Name, category.IncomeExpense)
-	
+
 	if i.Amount <= 0 {
 		return errors.New("transaction CheckValid: amount must be positive")
 	}
-	
+
 	if i.IncomeExpense != category.IncomeExpense {
 		log.Printf("[model]: IncomeExpense不匹配 - 交易: %s, 分类: %s", i.IncomeExpense, category.IncomeExpense)
 		return errors.New("交易的收支类型与分类不匹配")
 	}
-	
+
 	return nil
 }

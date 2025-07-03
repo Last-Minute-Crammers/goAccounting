@@ -65,7 +65,7 @@ func (c *CategoryApi) DeleteCategory(ctx *gin.Context) {
 // ListCategory
 func (c *CategoryApi) ListCategory(ctx *gin.Context) {
 	var req struct {
-		IncomeExpense *constant.IncomeExpense `form:"income_expense"`
+		IncomeExpense *constant.IncomeExpense `json:"income_expense" form:"income_expense"`
 	}
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		response.FailToParameter(ctx, err)

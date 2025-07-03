@@ -76,10 +76,16 @@ type TransactionMonthStatistic struct {
 	TransactionQueryCondition
 }
 
+type TransactionYearStatistic struct {
+	TransactionQueryCondition
+}
+
+type TransactionWeekStatistic struct {
+	TransactionQueryCondition
+}
+
 type TransactionDayStatistic struct {
-	CategoryIds   *[]uint
-	IncomeExpense *constant.IncomeExpense `binding:"omitempty,oneof=income expense"`
-	TimeFrame
+	TransactionQueryCondition
 }
 
 type TransactionCategoryAmountRank struct {

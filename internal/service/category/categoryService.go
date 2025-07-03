@@ -5,6 +5,7 @@ import (
 	"goAccounting/global/constant"
 	"goAccounting/global/db"
 	categoryModel "goAccounting/internal/model/category"
+	"log"
 
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
@@ -32,6 +33,7 @@ func (c *Category) Create(
 	if !exists || userId == 0 {
 		return categoryModel.Category{}, errors.New("用户未登录")
 	}
+	log.Printf("[tagsService] :user Id = %d\n", userId)
 
 	// 4. 创建数据结构
 	data := categoryModel.CategoryCreateData{
@@ -115,7 +117,7 @@ func (c *Category) Delete(id uint, ctx context.Context) error {
 func (c *Category) List(incomeExpense *constant.IncomeExpense, ctx context.Context) ([]categoryModel.Category, error) {
 	// 从上下文获取当前用户ID
 	userId, exists := ctx.Value("userId").(uint)
-	if (!exists || userId == 0) {
+	if !exists || userId == 0 {
 		return nil, errors.New("用户未登录")
 	}
 

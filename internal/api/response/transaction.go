@@ -10,19 +10,18 @@ import (
 )
 
 type TransactionDetail struct {
-	Id                 uint
-	UserId             uint
-	UserName           string
-	Amount             int
-	CategoryId         uint
-	CategoryName       string
-	CategoryFatherName string
-	IncomeExpense      constant.IncomeExpense
-	Remark             string
-	RecordType         transactionModel.RecordType
-	TradeTime          time.Time
-	UpdateTime         time.Time
-	CreateTime         time.Time
+	Id            uint
+	UserId        uint
+	UserName      string
+	Amount        int
+	CategoryId    uint
+	CategoryName  string
+	IncomeExpense constant.IncomeExpense
+	Remark        string
+	RecordType    transactionModel.RecordType
+	TradeTime     time.Time
+	UpdateTime    time.Time
+	CreateTime    time.Time
 	// CategoryIcon       string
 }
 
@@ -35,7 +34,7 @@ func (t *TransactionDetail) SetData(
 	)
 
 	t.Id = trans.ID
-	t.UserId = user.ID
+	t.UserId = trans.UserId
 	t.UserName = user.Username
 	t.Amount = trans.Amount
 	t.CategoryId = trans.CategoryId
@@ -58,6 +57,7 @@ func (t *TransactionDetailList) SetData(transList []transactionModel.Transaction
 	}
 	for i, trans := range transList {
 		(*t)[i].Id = trans.ID
+		(*t)[i].UserId = trans.UserId
 		(*t)[i].Amount = trans.Amount
 		(*t)[i].CategoryId = trans.CategoryId
 		(*t)[i].IncomeExpense = trans.IncomeExpense

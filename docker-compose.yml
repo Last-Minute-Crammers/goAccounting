@@ -3,6 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        http_proxy: http://host.docker.internal:7897
+        https_proxy: http://host.docker.internal:7897
+        HTTP_PROXY: http://host.docker.internal:7897
+        HTTPS_PROXY: http://host.docker.internal:7897
     container_name: goaccounting-api
     restart: always
     ports:
