@@ -17,6 +17,6 @@ func RegisterTransactionRoutes() {
 	Private.POST("/user/transaction/statistic/year", transactionApi.GetYearStatistic)   // 改为POST支持JSON body
 	Private.GET("/user/transaction/statistic/total", transactionApi.GetTotalStatistic)
 
-	Private.GET("/user/transaction/statistic/category_rank", transactionApi.GetCategoryAmountRank)
+	Private.POST("/user/transaction/statistic/category_rank", transactionApi.GetCategoryAmountRank)
 	Private.GET("/user/transaction/statistic/amount_rank", transactionApi.GetAmountRank)
 }

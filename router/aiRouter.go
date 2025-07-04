@@ -22,5 +22,7 @@ func RegisterAIRoutes() {
 	Private.GET("/user/ai/chat/history", aiAPI.GinChatHistoryHandler)
 	// AI 聊天会话详情接口
 	Private.GET("/user/ai/chat/session", aiAPI.GinChatSessionDetailHandler)
+	// AI 财务报告生成接口
+	Private.POST("/report/ai", aiAPI.GinAIReportHandler)
 }
 

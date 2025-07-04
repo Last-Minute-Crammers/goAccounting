@@ -4,6 +4,7 @@
 package aiAPI
 
 import (
+	"encoding/json"
 	"fmt"
 	aiService "goAccounting/internal/service/thirdparty/ai"
 	"log"
@@ -164,4 +165,62 @@ func GinChatSessionDetailHandler(ctx *gin.Context) {
 		}
 	}
 	ctx.JSON(200, gin.H{"success": true, "data": filtered})
+}
+
+// GinAIReportHandler 处理AI财务报告生成请求
+func GinAIReportHandler(ctx *gin.Context) {
+	type Req struct {
+		Type  string                 `json:"type"`
+		Stats map[string]interface{} `json:"stats"`
+	}
+	var req Req
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, gin.H{"error": "参数错误"})
+		return
+	}
+
+	// 组装prompt
+	prompt := buildAIReportPrompt(req.Type, req.Stats)
+
+	// 调用蓝心大模型
+	aiService := aiService.ChatService{}
+	resp, err := aiService.GetChatResponse(prompt, ctx)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": "AI生成失败"})
+		return
+	}
+
+	// 假设AI返回内容为JSON字符串，解析出summary、suggestion、tags
+	var aiResult struct {
+		Summary    string   `json:"summary"`
+		Suggestion string   `json:"suggestion"`
+		Tags       []string `json:"tags"`
+	}
+	if err := json.Unmarshal([]byte(resp), &aiResult); err != nil {
+		ctx.JSON(500, gin.H{"error": "AI返回解析失败", "raw": resp})
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"summary": aiResult.Summary,
+		"suggestion": aiResult.Suggestion,
+		"tags": aiResult.Tags,
+	})
+}
+
+// buildAIReportPrompt 组装AI报表prompt
+func buildAIReportPrompt(reportType string, stats map[string]interface{}) string {
+	var typeText string
+	switch reportType {
+	case "week":
+		typeText = "本周财务数据："
+	case "month":
+		typeText = "本月财务数据："
+	case "year":
+		typeText = "本年财务数据："
+	default:
+		typeText = "财务数据："
+	}
+	statsJson, _ := json.Marshal(stats)
+	return typeText + string(statsJson) + `\n请你作为理财助手，输出如下JSON格式：{ "summary": "收支总结", "suggestion": "理财建议", "tags": ["标签1", "标签2", "标签3"] }。summary为收支总结，suggestion为理财建议，tags为3个简短标签。`
 }
