@@ -68,6 +68,7 @@ func (u *UserDao) AddUser(data AddData) (User, error) {
 		Password: data.Password,
 		Email:    data.Email,
 	}
+
 	err := u.db.Create(&user).Error
 	return user, err
 }
