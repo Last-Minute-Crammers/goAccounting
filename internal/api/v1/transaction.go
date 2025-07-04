@@ -40,6 +40,71 @@ func (t *TransactionApi) GetOne(ctx *gin.Context) {
 	response.OkWithData(data, ctx)
 }
 
+// Update
+//
+//	@Tags		Transaction
+//	@Accept		json
+//	@Produce	json
+//	@Param		accountId	path		int								true	"Account ID"
+//	@Param		id			path		int								true	"Transaction ID"
+//	@Param		body		body		request.TransactionUpdateOne	true	"Transaction data"
+//	@Success	200			{object}	response.Data{Data=response.TransactionDetail}
+//	@Router		/account/{accountId}/transaction/{id} [put]
+func (t *TransactionApi) Update(ctx *gin.Context) {
+	log.Println("[api]: get into TransactionUpdate")
+	var requestData request.TransactionUpdateOne
+	if err := ctx.ShouldBindJSON(&requestData); err != nil {
+		response.FailToParameter(ctx, err)
+		return
+	}
+	oldTrans, ok := contextFunc.GetTransByParam(ctx)
+	if !ok {
+		return
+	}
+	trans := oldTrans
+	trans.Info = transactionModel.Info{
+		UserId:        oldTrans.UserId,
+		CategoryId:    requestData.CategoryId,
+		IncomeExpense: requestData.IncomeExpense,
+		Amount:        requestData.Amount,
+		Remark:        requestData.Remark,
+		TradeTime:     requestData.TradeTime,
+	}
+	err := transactionService.Update(oldTrans.ID, trans.Info, ctx)
+	if responseError(err, ctx) {
+		return
+	}
+
+	var responseData response.TransactionDetail
+	if err = responseData.SetData(trans); responseError(err, ctx) {
+		return
+	}
+	response.OkWithData(responseData, ctx)
+}
+
+// Delete
+//
+//	@Tags		Transaction
+//	@Accept		json
+//	@Produce	json
+//	@Param		accountId	path		int	true	"Account ID"
+//	@Param		id			path		int	true	"Transaction ID"
+//	@Success	200			{object}	response.NoContent
+//	@Router		/account/{accountId}/transaction/{id} [delete]
+func (t *TransactionApi) Delete(ctx *gin.Context) {
+	log.Println("[api]: get into TxDelete")
+	trans, pass := contextFunc.GetTransByParam(ctx)
+	if !pass {
+		return
+	}
+	err := transactionService.Delete(trans.ID, ctx)
+	if err != nil {
+		response.FailToError(ctx, err)
+		return
+	}
+	response.Ok(ctx)
+}
+
 // GetList
 //
 //	@Tags		Transaction

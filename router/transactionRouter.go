@@ -7,6 +7,8 @@ import (
 func RegisterTransactionRoutes() {
 	transactionApi := new(v1.TransactionApi)
 	Private.GET("/user/transaction/:id", transactionApi.GetOne)
+	Private.PUT("/user/transaction/:id", transactionApi.Update)
+	Private.DELETE("/user/transaction/:id", transactionApi.Delete)
 	Private.POST("/user/transaction/list", transactionApi.GetList) // 改为POST支持JSON body
 	Private.POST("/user/transaction", transactionApi.CreateOne)
 	Private.POST("/user/transaction/statistic/day", transactionApi.GetDayStatistic)     // 改为POST支持JSON body
