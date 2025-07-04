@@ -10,10 +10,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	contextFunc "goAccounting/internal/api/util"
 	aiModel "goAccounting/internal/model/ai"
+	transactionService "goAccounting/internal/service/transaction"
 )
 
 type ChatRequest struct {
@@ -179,8 +181,49 @@ func GinAIReportHandler(ctx *gin.Context) {
 		return
 	}
 
-	// 组装prompt
-	prompt := buildAIReportPrompt(req.Type, req.Stats)
+	userId := contextFunc.ContextFunc.GetUserId(ctx)
+	stats := req.Stats
+	if stats == nil || len(stats) == 0 || (stats["list"] != nil && len(stats["list"].([]interface{})) == 0) {
+		// 自动查库
+		var periodType transactionService.PeriodType
+		var startTime, endTime time.Time
+		now := time.Now()
+		switch req.Type {
+		case "week":
+			periodType = transactionService.Weekly
+			endTime = now
+			startTime = now.AddDate(0, 0, -6)
+		case "month":
+			periodType = transactionService.Monthly
+			endTime = now
+			startTime = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+		case "year":
+			periodType = transactionService.Monthly
+			endTime = now
+			startTime = now.AddDate(0, -11, 1)
+		default:
+			periodType = transactionService.Monthly
+			endTime = now
+			startTime = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+		}
+		service := transactionService.NewStatisticService()
+		periodStats, err := service.GetPeriodStatistics(userId, periodType, startTime, endTime, nil, nil, ctx)
+		if err == nil && len(periodStats) > 0 {
+			list := make([]map[string]interface{}, 0, len(periodStats))
+			for _, p := range periodStats {
+				item := map[string]interface{}{
+					"period": p.Period,
+					"start_time": p.StartTime,
+					"end_time": p.EndTime,
+					"statistics": p.Statistics,
+				}
+				list = append(list, item)
+			}
+			stats = map[string]interface{}{ "list": list }
+		}
+	}
+
+	prompt := buildAIReportPrompt(req.Type, stats)
 
 	// 调用蓝心大模型
 	aiService := aiService.ChatService{}
@@ -222,5 +265,5 @@ func buildAIReportPrompt(reportType string, stats map[string]interface{}) string
 		typeText = "财务数据："
 	}
 	statsJson, _ := json.Marshal(stats)
-	return typeText + string(statsJson) + `\n请你作为理财助手，输出如下JSON格式：{ "summary": "收支总结", "suggestion": "理财建议", "tags": ["标签1", "标签2", "标签3"] }。summary为收支总结，suggestion为理财建议，tags为3个简短标签。`
+	return typeText + string(statsJson) + `\n请你作为理财助手，输出如下JSON格式：{ "summary": "收支总结", "suggestion": "理财建议", "tags": ["标签1", "标签2", "标签3"] }。summary为收支总结，请尽量多结合用户的实际情况，给出有参考意义的总结，注意假如用户长期没有收支记录，可能是用户之前还没有使用此记账软件。suggestion为理财建议，请给出具体的建议，不要过于笼统，保持专业性和实用性。tags为3个简短标签，可适当俏皮有趣一些。`
 }
