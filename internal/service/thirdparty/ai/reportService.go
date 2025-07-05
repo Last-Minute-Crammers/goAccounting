@@ -5,6 +5,9 @@ import (
 	"context"
 	//"fmt"
 	"time"
+
+	"goAccounting/internal/model/ai"
+	"gorm.io/gorm"
 )
 
 type ReportService struct{}
@@ -89,4 +92,31 @@ func (rs *ReportService) GetUserReports(userId uint, period string, limit int) (
 		},
 	}
 	return reports, nil
+}
+
+// 生成并保存AI报告
+func GenerateAndSaveReport(db *gorm.DB, userID uint, reportType aiModel.ReportType, period string, startTime, endTime string, summary, suggestion, tags string) error {
+	report := &aiModel.FinancialReport{
+		UserID:     userID,
+		Type:       reportType,
+		Period:     period,
+		Summary:    summary,
+		Suggestion: suggestion,
+		Tags:       tags,
+	}
+	return aiModel.CreateReport(db, report)
+}
+
+// 查询历史AI报告
+func GetHistoryReport(db *gorm.DB, userID uint, reportType aiModel.ReportType, period string) (*aiModel.FinancialReport, error) {
+	return aiModel.GetReport(db, userID, reportType, period)
+}
+
+// 定时批量生成历史AI报告（接口定义，具体实现可后续完善）
+func BatchGenerateReports(db *gorm.DB) error {
+	// 1. 查询所有活跃用户
+	// 2. 按周期（周/月/年）遍历，生成报告内容
+	// 3. 调用 GenerateAndSaveReport 保存
+	// 4. 可加并发/分片优化
+	return nil
 }

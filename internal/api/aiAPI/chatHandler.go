@@ -16,6 +16,7 @@ import (
 	contextFunc "goAccounting/internal/api/util"
 	aiModel "goAccounting/internal/model/ai"
 	transactionService "goAccounting/internal/service/transaction"
+	"gorm.io/gorm"
 )
 
 type ChatRequest struct {
@@ -226,8 +227,8 @@ func GinAIReportHandler(ctx *gin.Context) {
 	prompt := buildAIReportPrompt(req.Type, stats)
 
 	// 调用蓝心大模型
-	aiService := aiService.ChatService{}
-	resp, err := aiService.GetChatResponse(prompt, ctx)
+	chatService := &aiService.ChatService{}
+	resp, err := chatService.GetChatResponse(prompt, ctx)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": "AI生成失败"})
 		return
@@ -242,6 +243,47 @@ func GinAIReportHandler(ctx *gin.Context) {
 	if err := json.Unmarshal([]byte(resp), &aiResult); err != nil {
 		ctx.JSON(500, gin.H{"error": "AI返回解析失败", "raw": resp})
 		return
+	}
+
+	// 保存报告到数据库
+	db := ctx.MustGet("db").(*gorm.DB)
+	tagsJson, _ := json.Marshal(aiResult.Tags)
+	now := time.Now()
+	var startTime, endTime time.Time
+	switch req.Type {
+	case "week":
+		endTime = now
+		startTime = now.AddDate(0, 0, -6)
+	case "month":
+		endTime = now
+		startTime = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	case "year":
+		endTime = now
+		startTime = now.AddDate(0, -11, 1)
+	default:
+		endTime = now
+		startTime = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	}
+	
+	// 生成period字符串
+	var period string
+	switch req.Type {
+	case "week":
+		year := now.Year()
+		week := (now.YearDay() + 6) / 7
+		period = fmt.Sprintf("%d-W%02d", year, week)
+	case "month":
+		period = fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+	case "year":
+		period = fmt.Sprintf("%d", now.Year())
+	default:
+		period = fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+	}
+
+	err = aiService.GenerateAndSaveReport(db, userId, aiModel.ReportType(req.Type), period, startTime.Format("2006-01-02"), endTime.Format("2006-01-02"), aiResult.Summary, aiResult.Suggestion, string(tagsJson))
+	if err != nil {
+		log.Printf("保存AI报告失败: %v", err)
+		// 即使保存失败，也返回生成的报告
 	}
 
 	ctx.JSON(200, gin.H{
@@ -266,4 +308,30 @@ func buildAIReportPrompt(reportType string, stats map[string]interface{}) string
 	}
 	statsJson, _ := json.Marshal(stats)
 	return typeText + string(statsJson) + `\n请你作为理财助手，输出如下JSON格式：{ "summary": "收支总结", "suggestion": "理财建议", "tags": ["标签1", "标签2", "标签3"] }。summary为收支总结，请尽量多结合用户的实际情况，给出有参考意义的总结，注意假如用户长期没有收支记录，可能是用户之前还没有使用此记账软件。suggestion为理财建议，请给出具体的建议，不要过于笼统，保持专业性和实用性。tags为3个简短标签，可适当俏皮有趣一些。`
+}
+
+// 查询历史AI报告
+func GetHistoryReportHandler(ctx *gin.Context) {
+	log.Printf("GetHistoryReportHandler 被调用")
+	userID := contextFunc.ContextFunc.GetUserId(ctx)
+	reportType := ctx.Query("type")
+	period := ctx.Query("period")
+
+	log.Printf("GetHistoryReportHandler - userID: %d, reportType: %s, period: %s", userID, reportType, period)
+
+	if userID == 0 || reportType == "" || period == "" {
+		log.Printf("参数验证失败 - userID: %d, reportType: %s, period: %s", userID, reportType, period)
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数缺失"})
+		return
+	}
+
+	db := ctx.MustGet("db").(*gorm.DB)
+	report, err := aiModel.GetHistoryReport(db, userID, aiModel.ReportType(reportType), period)
+	if err != nil {
+		log.Printf("查询历史报告失败: %v", err)
+		// 返回200状态码，但data为null，表示没有找到历史报告
+		ctx.JSON(http.StatusOK, gin.H{"data": nil, "msg": "未找到历史报告"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"data": report})
 }

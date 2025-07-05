@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"goAccounting/util/jwtTool"
+	"goAccounting/initialize"
 
 	"github.com/gin-gonic/gin"
 )
@@ -67,6 +68,15 @@ func CORSMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		ctx.Next()
+	}
+}
+
+// 数据库注入中间件
+func InjectDB() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// 直接使用全局数据库连接
+		ctx.Set("db", initialize.Database)
 		ctx.Next()
 	}
 }
