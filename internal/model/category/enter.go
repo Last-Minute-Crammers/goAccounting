@@ -13,9 +13,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	// 应用启动时为用户ID=1创建默认分类（如果不存在）
-	initDefaultCategoriesForUser1()
 }
 
 // initDefaultCategoriesForUser1 为用户ID=1创建默认分类（仅用于开发测试）

@@ -5,6 +5,7 @@ import (
 	"goAccounting/global/constant"
 	"goAccounting/global/ctxutil"
 	"goAccounting/global/db"
+	categoryModel "goAccounting/internal/model/category"
 	userModel "goAccounting/internal/model/user"
 	commonService "goAccounting/internal/service/common"
 	"log"
@@ -79,6 +80,11 @@ func (userSvc *User) Register(data userModel.AddData, ctx context.Context) (user
 
 	log.Printf("[service]: addData param: %+v\n", data)
 	user, err := dao.AddUser(data)
+	if err != nil {
+		return user, err
+	}
+
+	err = categoryModel.CreateDefaultCategoriesForUser(user.ID)
 	if err != nil {
 		return user, err
 	}
