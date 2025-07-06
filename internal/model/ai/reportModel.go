@@ -2,22 +2,26 @@ package aiModel
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
-type reprotType int8
+type ReportType string
 
 const (
-	reportWeekly  reprotType = iota // 周报
-	reportMonthly                   // 月报
-	reportYearly                    // 年报
+	ReportTypeWeek  ReportType = "week"
+	ReportTypeMonth ReportType = "month"
+	ReportTypeYear  ReportType = "year"
 )
 
-type reportRecord struct {
-	ID           uint `gorm:"primarykey"`
-	UserId       uint `gorm:"index"`
-	reportRecord reprotType
-	CreatedAt    time.Time      `gorm:"type:TIMESTAMP"`
-	DeletedAt    gorm.DeletedAt `gorm:"index"`
+type FinancialReport struct {
+	ID         uint       `gorm:"primaryKey"`
+	UserID     uint       `gorm:"index"`
+	Type       ReportType `gorm:"type:varchar(10);index"` // week/month/year
+	Period     string     `gorm:"type:varchar(32);index"` // 2024-W27/2024-07/2024
+	StartTime  time.Time
+	EndTime    time.Time
+	Summary    string
+	Suggestion string
+	Tags       string // JSON数组字符串
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

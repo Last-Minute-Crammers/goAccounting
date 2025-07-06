@@ -37,14 +37,14 @@ func init() {
 	// 初始化路由组
 	PublicRouterGroup = Engine.Group(global.Config.System.RouterPrefix + "/public")
 	fmt.Println("starting init PRIVATE router")
-	Private = Engine.Group(global.Config.System.RouterPrefix, middleware.JWTAuth())
+	Private = Engine.Group(global.Config.System.RouterPrefix, middleware.InjectDB(), middleware.JWTAuth())
 	fmt.Println("init basic router success")
 
 	// 注册所有路由 - 先注册Public路由，再注册AI路由
 	RegisterPublicRoutes()
 	RegisterAIRoutes() // AI routes now use Public group
 	RegisterUserRoutes()
-		RegisterTransactionRoutesPlaceholder()
+	RegisterTransactionRoutesPlaceholder()
 	RegisterCategoryRoutes()
 	RegisterTransactionRoutes()
 
