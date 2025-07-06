@@ -16,12 +16,13 @@ func (c *CategoryApi) CreateCategory(ctx *gin.Context) {
 	var req struct {
 		Name          string                 `json:"name" binding:"required"`
 		IncomeExpense constant.IncomeExpense `json:"income_expense" binding:"required"`
+		Icon          string                 `json:"icon" binding:"required"`
 	}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.FailToParameter(ctx, err)
 		return
 	}
-	category, err := categoryService.Create(req.Name, req.IncomeExpense, ctx)
+	category, err := categoryService.Create(req.Name, req.IncomeExpense, req.Icon, ctx)
 	if responseError(err, ctx) {
 		return
 	}

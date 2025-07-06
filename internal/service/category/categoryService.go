@@ -15,7 +15,7 @@ type Category struct{}
 
 // Create 创建新的分类
 func (c *Category) Create(
-	name string, incomeExpense constant.IncomeExpense, ctx context.Context) (categoryModel.Category, error) {
+	name string, incomeExpense constant.IncomeExpense, icon string, ctx context.Context) (categoryModel.Category, error) {
 
 	// 1. 参数验证
 	if name == "" {
@@ -40,7 +40,7 @@ func (c *Category) Create(
 		AccountID:     userId,
 		Name:          name,
 		IncomeExpense: incomeExpense,
-		Icon:          "", // 暂时不设置图标
+		Icon:          icon,
 	}
 
 	// 5. 调用数据访问层创建分类
