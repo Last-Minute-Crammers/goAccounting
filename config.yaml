@@ -1,4 +1,4 @@
-Mode: release
+Mode: production
 
 System:
  Addr: 8080
