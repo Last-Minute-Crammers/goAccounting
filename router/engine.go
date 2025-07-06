@@ -22,17 +22,21 @@ func init() {
 		MaxAge:           12 * 60 * 60, 
 	}))
 
-
 	Engine.Use(func(c *gin.Context) {
+		// 设置CORS头
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept, Authorization, X-Requested-With, Cache-Control, Pragma")
+		c.Header("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Max-Age", "86400") // 24小时
+		
 		// 处理预检请求
 		if c.Request.Method == "OPTIONS" {
-			c.Header("Access-Control-Allow-Origin", "*")
-			c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS")
-			c.Header("Access-Control-Allow-Headers", "Origin, Content-Length, Content-Type, Authorization, Accept, X-Requested-With")
-			c.Header("Access-Control-Max-Age", "43200") // 12小时
 			c.AbortWithStatus(204)
 			return
 		}
+		
 		c.Next()
 	})
 
