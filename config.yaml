@@ -17,7 +17,7 @@ Mysql:
   Config: "parseTime=True&loc=Local"
   DbName: "Accounting"
   Username: "hypnos"
-  Password: "hypnos-mysql-release" 
+  Password: "hypnos" 
 
 ThirdParty:
   Ai:
