@@ -1,4 +1,4 @@
-Mode: debug
+Mode: release
 
 System:
  Addr: 8080
@@ -17,7 +17,7 @@ Mysql:
   Config: "parseTime=True&loc=Local"
   DbName: "Accounting"
   Username: "hypnos"
-  Password: "hypnos"
+  Password: "hypnos-mysql-release" 
 
 ThirdParty:
   Ai:
