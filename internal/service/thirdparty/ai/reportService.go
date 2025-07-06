@@ -96,10 +96,25 @@ func (rs *ReportService) GetUserReports(userId uint, period string, limit int) (
 
 // 生成并保存AI报告
 func GenerateAndSaveReport(db *gorm.DB, userID uint, reportType aiModel.ReportType, period string, startTime, endTime string, summary, suggestion, tags string) error {
+	// 解析时间字符串
+	startTimeParsed, err := time.Parse("2006-01-02", startTime)
+	if err != nil {
+		// 如果解析失败，使用当前时间
+		startTimeParsed = time.Now()
+	}
+	
+	endTimeParsed, err := time.Parse("2006-01-02", endTime)
+	if err != nil {
+		// 如果解析失败，使用当前时间
+		endTimeParsed = time.Now()
+	}
+	
 	report := &aiModel.FinancialReport{
 		UserID:     userID,
 		Type:       reportType,
 		Period:     period,
+		StartTime:  startTimeParsed,
+		EndTime:    endTimeParsed,
 		Summary:    summary,
 		Suggestion: suggestion,
 		Tags:       tags,
