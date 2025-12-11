@@ -17,12 +17,11 @@ import (
 )
 
 type _admin struct {
-    Emails string `yaml:"emails"` // 逗号分隔的邮箱列表
+	Emails string `yaml:"emails"` // 逗号分隔的邮箱列表
 }
 
-
-
 type _config struct {
+	Env        string              `yaml:"Env"`
 	Mode       constant.ServerMode `yaml:"Mode"`
 	Redis      _redis              `yaml:"Redis"`
 	Mysql      _mysql              `yaml:"Mysql"`
@@ -30,7 +29,7 @@ type _config struct {
 	Logger     _logger             `yaml:"Logger"`
 	System     _system             `yaml:"System"`
 	ThirdParty _thirdParty         `yaml:"ThirdParty"`
-    Admin      _admin              `yaml:"Admin"`
+	Admin      _admin              `yaml:"Admin"`
 }
 
 var (
@@ -42,22 +41,54 @@ var (
 )
 
 func initConfig() error {
-	configFileName := "config.yaml"
-	fmt.Printf("RootDir is %s\n", constant.RootDir)
-	configPath := filepath.Join(constant.RootDir, configFileName)
-	yamlFile, err := os.ReadFile(configPath)
+	// 第一步：读取主配置文件获取运行环境
+	mainConfigPath := filepath.Join(constant.RootDir, constant.ConfigFileName)
+	yamlFile, err := os.ReadFile(mainConfigPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read %s: %w", constant.ConfigFileName, err)
 	}
 
+	// 解析主配置以获取 Env
+	mainConfig := &_config{}
+	err = yaml.Unmarshal(yamlFile, mainConfig)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal %s: %w", constant.ConfigFileName, err)
+	}
+
+	// 第二步：根据 Env 读取对应的配置文件
+	var envMode constant.EnvMode
+	env := mainConfig.Env
+
+	switch env {
+	case string(constant.EnvLocalhost):
+		envMode = constant.EnvLocalhost
+	case string(constant.EnvDocker):
+		envMode = constant.EnvDocker
+	default:
+		return fmt.Errorf("unknown Env: %s, expected '%s' or '%s'",
+			env, constant.EnvLocalhost, constant.EnvDocker)
+	}
+
+	actualConfigFile := constant.GetConfigFileName(envMode)
+	actualConfigPath := filepath.Join(constant.RootDir, actualConfigFile)
+	fmt.Printf("Loading config from: %s\n", actualConfigFile)
+
+	actualYamlFile, err := os.ReadFile(actualConfigPath)
+	if err != nil {
+		return fmt.Errorf("failed to read %s: %w", actualConfigFile, err)
+	}
+
+	// 第三步：解析实际配置文件到 Config
 	if Config == nil {
 		Config = &_config{}
 	}
 
-	err = yaml.Unmarshal(yamlFile, Config)
+	err = yaml.Unmarshal(actualYamlFile, Config)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal %s: %w", actualConfigFile, err)
 	}
+
+	fmt.Printf("Config loaded successfully from: %s (Env: %s, Mode: %s)\n", actualConfigFile, env, Config.Mode)
 	return nil
 }
 

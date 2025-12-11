@@ -20,6 +20,8 @@ WORKDIR /app
 # 拷贝编译好的二进制和配置
 COPY --from=builder /app/goAccounting .
 COPY config.yaml .
+COPY config.localhost.yaml .
+COPY config.docker.yaml .
 
 # 需要其它静态文件/证书等，也在这里 COPY
 

@@ -112,3 +112,30 @@ type LogOperation string
 const (
 	LogOperationOfAdd LogOperation = "add"
 )
+
+// 配置环境模式
+type EnvMode string
+
+const (
+	EnvLocalhost EnvMode = "localhost"
+	EnvDocker    EnvMode = "docker"
+)
+
+// 配置文件常量
+const (
+	ConfigFileName          = "config.yaml"
+	ConfigLocalhostFileName = "config.localhost.yaml"
+	ConfigDockerFileName    = "config.docker.yaml"
+)
+
+// GetConfigFileName 根据环境模式返回对应的配置文件名
+func GetConfigFileName(env EnvMode) string {
+	switch env {
+	case EnvLocalhost:
+		return ConfigLocalhostFileName
+	case EnvDocker:
+		return ConfigDockerFileName
+	default:
+		return ConfigFileName
+	}
+}

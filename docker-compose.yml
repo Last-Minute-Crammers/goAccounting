@@ -8,10 +8,14 @@ services:
         https_proxy: http://host.docker.internal:7897
         HTTP_PROXY: http://host.docker.internal:7897
         HTTPS_PROXY: http://host.docker.internal:7897
+      extra_hosts:  
+        - "host.docker.internal:host-gateway"
     container_name: goaccounting-api
     restart: always
     ports:
       - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" 
     depends_on:
       mysql:
         condition: service_healthy
@@ -20,8 +24,9 @@ services:
     environment:
       TZ: Asia/Shanghai
     volumes:
-      #- .:/app
       - ./config.yaml:/app/config.yaml
+      - ./config.localhost.yaml:/app/config.localhost.yaml
+      - ./config.docker.yaml:/app/config.docker.yaml
       - ./logs:/app/logs
       - ./data:/app/data
     networks:
