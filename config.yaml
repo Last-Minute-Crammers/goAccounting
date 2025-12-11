@@ -7,14 +7,15 @@ System:
  ClientSignKey: ""
 
 Redis:
-  Addr: "redis:6379"
+  Addr: "localhost:6379"
   Password: ""
   Db: 0
 
 Mysql:
-  Path: "mysql"
+  Path: "localhost"
   Port: "3306"
-  Config: "parseTime=True&loc=Local"
+#  Config: "parseTime=True&loc=Local"
+  Config: ""
   DbName: "Accounting"
   Username: "hypnos"
   Password: "hypnos"
@@ -27,3 +28,6 @@ ThirdParty:
       api_key: "your_ocr_api_key"
     chat:
       api_key: "your_chat_api_key"
+      
+Admin:
+  emails: "cookiiy@qq.com, 3213495082@qq.com"

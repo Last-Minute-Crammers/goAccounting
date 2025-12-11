@@ -3,6 +3,7 @@ package initialize
 import (
 	"goAccounting/global/constant"
 	"time"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
@@ -51,6 +52,7 @@ func (m *_mysql) initializeMysql() error {
 		DefaultStringSize:         191,
 		SkipInitializeWithVersion: false,
 	}
+	fmt.Println("Gernerated DSN:", mysqlConfig.DSN)
 	var db *gorm.DB
 	db, err = reconnection[*gorm.DB](
 		func() (*gorm.DB, error) {

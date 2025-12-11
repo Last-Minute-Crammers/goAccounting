@@ -6,6 +6,7 @@ package userModel
 import (
 	"errors"
 	"goAccounting/global"
+    "goAccounting/initialize" 
 
 	"gorm.io/gorm"
 )
@@ -63,10 +64,13 @@ func NewDao(db ...*gorm.DB) *UserDao {
 }
 
 func (u *UserDao) AddUser(data AddData) (User, error) {
+    isAdmin := initialize.Config.Admin.IsAdminEmail(data.Email)
+	
 	user := User{
 		Username: data.Username,
 		Password: data.Password,
 		Email:    data.Email,
+        IsAdmin:  isAdmin, // 直接设置
 	}
 
 	err := u.db.Create(&user).Error

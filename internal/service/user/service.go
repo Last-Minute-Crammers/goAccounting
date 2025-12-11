@@ -10,7 +10,6 @@ import (
 	commonService "goAccounting/internal/service/common"
 	"log"
 
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 )
@@ -18,26 +17,25 @@ import (
 type User struct{}
 
 func (userSvc *User) Login(email string, password string, ctx context.Context) (
-	user userModel.User, token string, customClaims jwt.RegisteredClaims, err error,
+	user userModel.User, token string, customClaims commonService.CustomClaims, err error,
 ) {
-	// 仅通过 email 查询用户记录
 	err = global.GlobalDb.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		return
 	}
 
-	// 验证密码
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return
 	}
 
-	// 生成 JWT 和更新登录数据
-	customClaims = commonService.Common.MakeCustomClaims(user.ID)
-	token, err = commonService.Common.GenerateJWT(customClaims)
+	// 生成带 IsAdmin 的 JWT
+	customClaims = commonService.Common.MakeCustomClaims(user.ID, user.IsAdmin)
+	token, err = commonService.Common.GenerateJWTWithAdmin(customClaims)
 	if err != nil {
 		return
 	}
+
 	err = userSvc.updateDataAfterLogin(user, ctx)
 	if err != nil {
 		return

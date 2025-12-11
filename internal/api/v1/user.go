@@ -8,12 +8,12 @@ import (
 	"goAccounting/internal/api/response"
 	transactionModel "goAccounting/internal/model/transaction"
 	userModel "goAccounting/internal/model/user"
+	commonServicePkg "goAccounting/internal/service/common"
 	"goAccounting/util/timeTool"
 	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type UserApi struct {
@@ -83,7 +83,7 @@ func (p *PublicApi) Login(ctx *gin.Context) {
 	// handler
 	var user userModel.User
 	var responseData response.Login
-	var customClaims jwt.RegisteredClaims
+	var customClaims commonServicePkg.CustomClaims
 	user, responseData.Token, customClaims, err = userService.Login(
 		requestData.Email, requestData.Password, ctx,
 	)
@@ -128,9 +128,9 @@ func (p *PublicApi) Register(ctx *gin.Context) {
 	if responseError(err, ctx) {
 		return
 	}
-	// 注册成功 获取token
-	customClaims := commonService.MakeCustomClaims(user.ID)
-	token, err := commonService.GenerateJWT(customClaims)
+	// 注册成功 获取token，传入 isAdmin 参数
+	customClaims := commonService.MakeCustomClaims(user.ID, user.IsAdmin) // 修改这里
+	token, err := commonService.GenerateJWTWithAdmin(customClaims)        // 修改这里
 	if responseError(err, ctx) {
 		return
 	}
@@ -171,7 +171,7 @@ func (u *UserApi) Home(ctx *gin.Context) {
 		return
 	}
 	responseData := gin.H{
-		"month_amount": result.Income.Amount - result.Expense.Amount,
+		"month_amount":  result.Income.Amount - result.Expense.Amount,
 		"month_expense": result.Expense.Amount,
 		// "income": result.Income.Amount,
 		// "expense": result.Expense.Amount,

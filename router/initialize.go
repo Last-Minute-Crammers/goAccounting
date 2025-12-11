@@ -33,6 +33,7 @@ func init() {
 		fmt.Println("router: engine is NIL")
 		return
 	}
+	baseUrl := global.Config.System.RouterPrefix
 
 	// 初始化路由组
 	PublicRouterGroup = Engine.Group(global.Config.System.RouterPrefix + "/public")
@@ -47,6 +48,7 @@ func init() {
 	RegisterTransactionRoutesPlaceholder()
 	RegisterCategoryRoutes()
 	RegisterTransactionRoutes()
+	(&AdminRouter{}).InitAdminRouter(Engine.Group(baseUrl))
 
 	fmt.Println("All routes registered successfully")
 }

@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"goAccounting/initialize"
+	"goAccounting/util/jwtTool"
 	"net/http"
 	"strings"
-	"goAccounting/util/jwtTool"
-	"goAccounting/initialize"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +20,7 @@ func JWTAuth() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+
 		tokenString := ""
 		if strings.HasPrefix(authHeader, "Bearer ") {
 			tokenString = authHeader[7:]
@@ -31,6 +32,7 @@ func JWTAuth() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+
 		if tokenString == "" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
@@ -40,7 +42,8 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
-		userId, err := jwtTool.ParseUserIdFromToken(tokenString, []byte(jwtTool.SignKey))
+		// 使用新的解析方法同时获取 userId 和 isAdmin
+		userId, isAdmin, err := jwtTool.ParseAdminFromToken(tokenString, []byte(initialize.Config.System.JwtKey))
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
@@ -49,9 +52,24 @@ func JWTAuth() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		// 这里的 "userId" 要和 GetUserId 用的是同一个 key，区分大小写
-		ctx.Set("userId", userId)
 
+		ctx.Set("userId", userId)
+		ctx.Set("isAdmin", isAdmin)
+		ctx.Next()
+	}
+}
+
+func AdminOnly() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		isAdmin, exists := ctx.Get("isAdmin")
+		if !exists || !isAdmin.(bool) {
+			ctx.JSON(http.StatusForbidden, gin.H{
+				"code":    403,
+				"message": "Admin access required",
+			})
+			ctx.Abort()
+			return
+		}
 		ctx.Next()
 	}
 }

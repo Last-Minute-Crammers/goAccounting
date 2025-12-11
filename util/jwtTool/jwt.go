@@ -20,6 +20,11 @@ func CreateToken(claims jwt.RegisteredClaims, key []byte) (string, error) {
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(key)
 }
 
+// 泛型方法支持自定义 Claims
+func CreateTokenWithClaims[T jwt.Claims](claims T, key []byte) (string, error) {
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(key)
+}
+
 func ParseToken(tokenStr string, key []byte) (claims jwt.RegisteredClaims, err error) {
 	token, err := jwt.ParseWithClaims(
 		tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
@@ -43,8 +48,6 @@ func ParseUserIdFromToken(tokenStr string, key []byte) (uint, error) {
 	if err != nil {
 		return 0, err
 	}
-	// userId 存在于 claims.Subject
-	// 你登录时生成 token 时，claims.Subject 应该写成用户id的字符串
 	if claims.Subject == "" {
 		return 0, errors.New("userId(subject) not found in token")
 	}
@@ -53,4 +56,42 @@ func ParseUserIdFromToken(tokenStr string, key []byte) (uint, error) {
 		return 0, errors.New("userId(subject) not uint")
 	}
 	return uint(id), nil
+}
+
+// 解析包含 IsAdmin 的 token
+func ParseAdminFromToken(tokenStr string, key []byte) (userId uint, isAdmin bool, err error) {
+	type CustomClaims struct {
+		jwt.RegisteredClaims
+		IsAdmin bool `json:"isAdmin"`
+	}
+
+	var claims CustomClaims
+	token, err := jwt.ParseWithClaims(
+		tokenStr,
+		&claims,
+		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return key, nil
+		},
+	)
+	if err != nil {
+		return 0, false, err
+	}
+
+	if !token.Valid {
+		return 0, false, errors.New("invalid token")
+	}
+
+	if claims.Subject == "" {
+		return 0, false, errors.New("userId(subject) not found in token")
+	}
+
+	id, err := strconv.Atoi(claims.Subject)
+	if err != nil {
+		return 0, false, errors.New("userId(subject) not uint")
+	}
+
+	return uint(id), claims.IsAdmin, nil
 }

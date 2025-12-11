@@ -10,6 +10,7 @@ type UserOne struct {
 	Username   string
 	Email      string
 	CreateTime time.Time
+	IsAdmin    bool
 }
 
 type Login struct {
@@ -28,6 +29,7 @@ func (u *UserOne) SetData(data userModel.User) error {
 	u.Email = data.Email
 	u.Username = data.Username
 	u.CreateTime = data.CreatedAt
+	u.IsAdmin = data.IsAdmin
 	return nil
 }
 
@@ -50,10 +52,12 @@ type UserInfo struct {
 	Id       uint
 	Username string
 	Email    string
+	IsAdmin  bool
 }
 
 func (u *UserInfo) SetData(data userModel.UserInfo) {
 	u.Id = data.ID
 	u.Username = data.Username
 	u.Email = data.Email
+	u.IsAdmin = data.IsAdmin
 }

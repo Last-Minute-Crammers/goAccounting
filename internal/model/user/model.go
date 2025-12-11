@@ -18,6 +18,7 @@ type User struct {
 	CreatedAt time.Time      `gorm:"type:TIMESTAMP"`
 	UpdatedAt time.Time      `gorm:"type:TIMESTAMP"`
 	DeletedAt gorm.DeletedAt `gorm:"index;type:TIMESTAMP"`
+	IsAdmin   bool 			 `gorm:"default:false"`
 }
 
 // provide to client, for lighter goal
@@ -25,6 +26,7 @@ type UserInfo struct {
 	ID       uint
 	Username string
 	Email    string
+	IsAdmin  bool
 }
 
 func (u *User) SelectById(id uint, selects ...any) error {

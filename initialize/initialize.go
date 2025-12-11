@@ -16,6 +16,12 @@ import (
 	"gorm.io/gorm"
 )
 
+type _admin struct {
+    Emails string `yaml:"emails"` // 逗号分隔的邮箱列表
+}
+
+
+
 type _config struct {
 	Mode       constant.ServerMode `yaml:"Mode"`
 	Redis      _redis              `yaml:"Redis"`
@@ -24,6 +30,7 @@ type _config struct {
 	Logger     _logger             `yaml:"Logger"`
 	System     _system             `yaml:"System"`
 	ThirdParty _thirdParty         `yaml:"ThirdParty"`
+    Admin      _admin              `yaml:"Admin"`
 }
 
 var (

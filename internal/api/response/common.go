@@ -1,7 +1,10 @@
 package response
 
 import (
+	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CommonCaptcha struct {
@@ -57,4 +60,18 @@ type ExpirationTime struct {
 
 type List[T any] struct {
 	List []T
+}
+
+type ApiResponse struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+func Success(ctx *gin.Context, data interface{}) {
+	ctx.JSON(http.StatusOK, ApiResponse{
+		Code:    200,
+		Message: "success",
+		Data:    data,
+	})
 }
