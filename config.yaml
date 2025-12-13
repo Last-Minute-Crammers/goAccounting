@@ -1,2 +1,5 @@
 Env: docker
 # localhost or docker
+
+Admin:
+  emails: "cookiiy@qq.com, 3213495082@qq.com, admin@qq.com"

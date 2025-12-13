@@ -88,6 +88,9 @@ func initConfig() error {
 		return fmt.Errorf("failed to unmarshal %s: %w", actualConfigFile, err)
 	}
 
+	// 第四步：用主配置的 Admin 覆盖环境配置的 Admin（实现 Admin 统一管理）
+	Config.Admin = mainConfig.Admin
+
 	fmt.Printf("Config loaded successfully from: %s (Env: %s, Mode: %s)\n", actualConfigFile, env, Config.Mode)
 	return nil
 }
